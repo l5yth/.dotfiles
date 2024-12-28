@@ -22,27 +22,27 @@ order += "disk /"
 order += "disk /home/"
 order += "load"
 order += "memory"
+order += "read_file wttr"
 order += "tztime local"
 
 ipv6 {
-        format_up = "6:$ip"
-        format_down = "6"
+        format_up = "%ip"
+        format_down = ""
 }
 
-
 wireless _first_ {
-        format_up = "W:%ip(%quality %essid)"
-        format_down = "W"
+        format_up = "%ip(%quality %essid)"
+        format_down = ""
 }
 
 ethernet _first_ {
-        format_up = "E:%ip"
-        format_down = "E"
+        format_up = "%ip"
+        format_down = ""
 }
 
 battery all {
-        format = "%status:%percentage(%remaining)"
-        format_down = "B"
+        format = "%status(%percentage)"
+        format_down = ""
         low_threshold = 45
 }
 
@@ -60,11 +60,16 @@ load {
 
 memory {
         format = "M:%used(%available)"
-        threshold_degraded = "1G"
+        threshold_degraded = "2G"
         format_degraded = "M:%available"
 }
 
+read_file wttr {
+        format = "%content"
+        path = "$HOME/.config/i3status/wttr"
+}
+
 tztime local {
-        format = "T:%Y-%m-%d,%H:%M:%S"
+        format = "%Y-%m-%d,%H:%M:%S"
 }
 

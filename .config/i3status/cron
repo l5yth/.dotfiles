@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+/usr/bin/curl "https://wttr.in/Berlin?format=1" | tr -d " \t\n\r" > $HOME/.config/i3status/wttr
