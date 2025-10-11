@@ -20,10 +20,12 @@ main() {
   tmux set-option -g status-left-length 100
   tmux set-option -g status-right-length 100
   tmux set-option -g status-bg "${dark_gray}"
-  tmux set-option -g pane-active-border-style "fg=${dark_purple}"
-  tmux set-option -g pane-border-style "fg=${gray}"
-  tmux set-option -g message-style "fg=${white},bg=${gray}"
-  tmux set-option -g message-command-style "fg=${white},bg=${gray}"
+  tmux set-option -g pane-active-border-fg "${dark_purple}"
+  tmux set-option -g pane-border-fg "${gray}"
+  tmux set-option -g message-bg "${gray}"
+  tmux set-option -g message-fg "${white}"
+  tmux set-option -g message-command-bg "${gray}"
+  tmux set-option -g message-command-fg "${white}"
   tmux set-option -g status-left " #I #[fg=${dark_gray},reverse]${right_sep} "
   tmux set-option -g status-left-style "fg=${white},bg=${dark_purple},bold"
   tmux set-option -g status-right "${left_sep}#[bg=${black},reverse] %Y-%m-%d %H:%M "
@@ -38,5 +40,3 @@ main() {
 }
 
 main
-
-# vim: set filetype=bash
