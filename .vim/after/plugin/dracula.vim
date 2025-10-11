@@ -118,7 +118,7 @@ if exists('g:loaded_nvim_treesitter')
     hi! link @namespace Structure
     " # Functions
     hi! link @function.builtin DraculaCyan
-    hi! link @funcion.macro Function
+    hi! link @function.macro Function
     hi! link @parameter DraculaOrangeItalic
     hi! link @parameter.reference DraculaOrange
     hi! link @field DraculaOrange
