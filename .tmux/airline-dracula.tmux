@@ -24,16 +24,16 @@ main() {
   tmux set-option -g pane-border-style "fg=${gray}"
   tmux set-option -g message-style "fg=${white},bg=${gray}"
   tmux set-option -g message-command-style "fg=${white},bg=${gray}"
-  tmux set-option -g status-left " #I #[fg=${dark_gray},reverse]${right_sep} "
+  tmux set-option -g status-left " #I #[fg=${dark_gray},reverse]${right_sep} #[default]"
   tmux set-option -g status-left-style "fg=${white},bg=${dark_purple},bold"
-  tmux set-option -g status-right "${left_sep}#[bg=${black},reverse] %Y-%m-%d %H:%M "
+  tmux set-option -g status-right "${left_sep}#[bg=${black},reverse] %Y-%m-%d %H:%M #[default]"
   tmux set-option -g status-right-style "fg=${light_purple},bg=${dark_gray}"
   tmux set-window-option -g window-status-activity-style "fg=${white},bg=${gray}"
   tmux set-window-option -g window-status-separator ''
   tmux set-window-option -g window-status-format ' #I #W '
   tmux set-window-option -g window-status-style "fg=${yellow},bg=${dark_gray}"
   tmux set-window-option -g window-status-current-format \
-    "${right_sep}#[fg=${black}] #I ${right_alt_sep} #W #[fg=${dark_gray},reverse]${right_sep}"
+    "${right_sep}#[fg=${black}] #I ${right_alt_sep} #W #[fg=${dark_gray},reverse]${right_sep}#[default]"
   tmux set-window-option -g window-status-current-style "fg=${dark_gray},bg=${light_purple}"
 }
 
