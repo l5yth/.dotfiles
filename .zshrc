@@ -52,7 +52,12 @@ HISTFILE="$HOME/.histfile"
 HISTFILESIZE=100000
 HISTSIZE=100000
 SAVEHIST=10000000
-PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+autoload -Uz add-zsh-hook
+_shared_history_sync() {
+  fc -AI
+  fc -R
+}
+add-zsh-hook precmd _shared_history_sync
 
 # environment
 export CLICOLOR=true
