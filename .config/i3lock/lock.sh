@@ -1,10 +1,4 @@
-#!/bin/bash
-
-# This script customizes the lock screen colors. It prefers i3lock-color for
-# advanced styling, but gracefully falls back to vanilla i3lock with reduced
-# options when i3lock-color is unavailable.
-
-set -euo pipefail
+#!/usr/bin/env bash
 
 setxkbmap -layout us -option compose:ralt
 
@@ -16,125 +10,37 @@ MAGENTA='#ff79c6'
 BLUE='#6272a4'
 GREEN='50fa7b'
 
-LOCK_ARGS=()
+i3lock \
+  --insidever-color=$SELECTION$ALPHA \
+  --insidewrong-color=$SELECTION$ALPHA \
+  --inside-color=$SELECTION$ALPHA \
+  --ringver-color=$GREEN$ALPHA \
+  --ringwrong-color=$RED$ALPHA \
+  --ring-color=$BLUE$ALPHA \
+  --line-uses-ring \
+  --keyhl-color=$MAGENTA$ALPHA \
+  --bshl-color=$ORANGE$ALPHA \
+  --separator-color=$SELECTION$ALPHA \
+  --verif-color=$GREEN \
+  --wrong-color=$RED \
+  --modif-color=$RED \
+  --layout-color=$BLUE \
+  --date-color=$BLUE \
+  --time-color=$BLUE \
+  --screen 1 \
+  --blur 3 \
+  --clock \
+  --indicator \
+  --time-str="%H:%M:%S" \
+  --date-str="%e.%m.%Y" \
+  --verif-text="Checking..." \
+  --wrong-text="Wrong" \
+  --noinput="No input" \
+  --lock-text="Locking..." \
+  --lockfailed="Lock failed" \
+  --radius=120 \
+  --ring-width=10 \
+  --pass-media-keys \
+  --pass-screen-keys \
+  --pass-volume-keys
 
-supports_i3lock_color() {
-  local candidate="$1"
-  local version_output
-  version_output="$("$candidate" --version 2>&1 || true)"
-  if [[ "$version_output" == *"color"* ]]; then
-    return 0
-  fi
-
-  local help_output
-  if help_output="$("$candidate" --help 2>&1)"; then
-    :
-  elif help_output="$("$candidate" -h 2>&1)"; then
-    :
-  else
-    help_output=""
-  fi
-  [[ "$help_output" == *"--insidever-color"* ]]
-}
-
-LOCK_BIN=""
-LOCK_MODE=""
-
-resolve_lock_binary() {
-  local candidate
-  local path
-  local real_path
-  local fallback=""
-
-  for candidate in i3lock-color i3lock; do
-    if ! path="$(command -v "$candidate" 2>/dev/null)"; then
-      continue
-    fi
-
-    real_path="$(readlink -f "$path" 2>/dev/null || true)"
-    if [[ -n "$real_path" && -x "$real_path" ]]; then
-      path="$real_path"
-    fi
-
-    if "$path" --version >/dev/null 2>&1; then
-      :
-    elif "$path" --help >/dev/null 2>&1; then
-      :
-    elif "$path" -h >/dev/null 2>&1; then
-      :
-    else
-      continue
-    fi
-
-    if supports_i3lock_color "$path"; then
-      LOCK_BIN="$path"
-      LOCK_MODE="color"
-      return 0
-    fi
-
-    if [[ "$candidate" == "i3lock" ]]; then
-      fallback="$path"
-    elif [[ -z "$fallback" ]]; then
-      fallback="$path"
-    fi
-  done
-
-  if [[ -n "$fallback" ]]; then
-    LOCK_BIN="$fallback"
-    LOCK_MODE="vanilla"
-    return 0
-  fi
-
-  return 1
-}
-
-if ! resolve_lock_binary; then
-  echo "Neither i3lock-color nor i3lock was found in PATH." >&2
-  exit 127
-fi
-
-if [[ "$LOCK_MODE" == "color" ]]; then
-  LOCK_ARGS=(
-    "--insidever-color=${SELECTION}${ALPHA}"
-    "--insidewrong-color=${SELECTION}${ALPHA}"
-    "--inside-color=${SELECTION}${ALPHA}"
-    "--ringver-color=${GREEN}${ALPHA}"
-    "--ringwrong-color=${RED}${ALPHA}"
-    "--ring-color=${BLUE}${ALPHA}"
-    "--line-uses-ring"
-    "--keyhl-color=${MAGENTA}${ALPHA}"
-    "--bshl-color=${ORANGE}${ALPHA}"
-    "--separator-color=${SELECTION}${ALPHA}"
-    "--verif-color=${GREEN}"
-    "--wrong-color=${RED}"
-    "--modif-color=${RED}"
-    "--layout-color=${BLUE}"
-    "--date-color=${BLUE}"
-    "--time-color=${BLUE}"
-    "--screen"
-    "1"
-    "--blur"
-    "3"
-    "--clock"
-    "--indicator"
-    "--time-str=%H:%M:%S"
-    "--date-str=%e.%m.%Y"
-    "--verif-text=Checking..."
-    "--wrong-text=Wrong"
-    "--noinput=No input"
-    "--lock-text=Locking..."
-    "--lockfailed=Lock failed"
-    "--radius=120"
-    "--ring-width=10"
-    "--pass-media-keys"
-    "--pass-screen-keys"
-    "--pass-volume-keys"
-  )
-else
-  LOCK_ARGS=(
-    "-c"
-    "${SELECTION#'#'}"
-  )
-fi
-
-exec "$LOCK_BIN" "${LOCK_ARGS[@]}"
