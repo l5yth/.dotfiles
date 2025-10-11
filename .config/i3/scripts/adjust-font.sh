@@ -3,6 +3,7 @@ set -euo pipefail
 
 DEFAULT_FONT="pango:DejaVu Sans Mono 12"
 SMALL_FONT="pango:DejaVu Sans Mono 10"
+TINY_FONT="pango:DejaVu Sans Mono 8"
 
 # Allow overriding via arguments from the i3 config.
 if [[ "${1-}" != "" ]]; then
@@ -10,6 +11,9 @@ if [[ "${1-}" != "" ]]; then
 fi
 if [[ "${2-}" != "" ]]; then
     SMALL_FONT=$2
+fi
+if [[ "${3-}" != "" ]]; then
+    TINY_FONT=$3
 fi
 
 max_height=0
@@ -27,8 +31,14 @@ if command -v xrandr >/dev/null 2>&1; then
     ')
 fi
 
-if [[ "$max_height" =~ ^[0-9]+$ ]] && (( max_height > 0 && max_height < 1080 )); then
-    i3-msg "font $SMALL_FONT" >/dev/null
+if [[ "$max_height" =~ ^[0-9]+$ ]] && (( max_height > 0 )); then
+    if (( max_height < 780 )); then
+        i3-msg "font $TINY_FONT" >/dev/null
+    elif (( max_height < 1080 )); then
+        i3-msg "font $SMALL_FONT" >/dev/null
+    else
+        i3-msg "font $DEFAULT_FONT" >/dev/null
+    fi
 else
     i3-msg "font $DEFAULT_FONT" >/dev/null
 fi
