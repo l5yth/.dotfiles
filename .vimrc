@@ -69,9 +69,15 @@ set showmatch
 map <leader><space> :let @/=''<cr> " clear search
 
 " Remap help key.
-inoremap <F1> <ESC>:set invfullscreen<CR>a
-nnoremap <F1> :set invfullscreen<CR>
-vnoremap <F1> :set invfullscreen<CR>
+if exists('&fullscreen')
+  inoremap <F1> <ESC>:set invfullscreen<CR>a
+  nnoremap <F1> :set invfullscreen<CR>
+  vnoremap <F1> :set invfullscreen<CR>
+else
+  inoremap <F1> <nop>
+  nnoremap <F1> <nop>
+  vnoremap <F1> <nop>
+endif
 
 " Formatting
 map <leader>q gqip
