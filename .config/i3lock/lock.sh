@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# This script customizes the lock screen colors. It requires i3lock-color for
+# the advanced styling options and will exit early if only vanilla i3lock is
+# available.
+
+set -euo pipefail
+
 setxkbmap -layout us -option compose:ralt
 
 ALPHA='dd'
@@ -10,7 +16,18 @@ MAGENTA='#ff79c6'
 BLUE='#6272a4'
 GREEN='50fa7b'
 
-i3lock \
+if command -v i3lock-color >/dev/null 2>&1; then
+  LOCK_BIN="$(command -v i3lock-color)"
+elif command -v i3lock >/dev/null 2>&1; then
+  echo "i3lock-color not found; the configured options require i3lock-color." >&2
+  echo "Install i3lock-color or adjust .config/i3lock/lock.sh to use vanilla i3lock." >&2
+  exit 1
+else
+  echo "Neither i3lock-color nor i3lock was found in PATH." >&2
+  exit 127
+fi
+
+"$LOCK_BIN" \
   --insidever-color=$SELECTION$ALPHA \
   --insidewrong-color=$SELECTION$ALPHA \
   --inside-color=$SELECTION$ALPHA \
@@ -43,4 +60,3 @@ i3lock \
   --pass-media-keys \
   --pass-screen-keys \
   --pass-volume-keys
-
