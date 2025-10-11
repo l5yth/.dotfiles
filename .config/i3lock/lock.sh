@@ -37,16 +37,63 @@ supports_i3lock_color() {
   [[ "$help_output" == *"--insidever-color"* ]]
 }
 
-if command -v i3lock-color >/dev/null 2>&1; then
-  LOCK_BIN="$(command -v i3lock-color)"
-elif command -v i3lock >/dev/null 2>&1; then
-  LOCK_BIN="$(command -v i3lock)"
-else
+LOCK_BIN=""
+LOCK_MODE=""
+
+resolve_lock_binary() {
+  local candidate
+  local path
+  local real_path
+  local fallback=""
+
+  for candidate in i3lock-color i3lock; do
+    if ! path="$(command -v "$candidate" 2>/dev/null)"; then
+      continue
+    fi
+
+    real_path="$(readlink -f "$path" 2>/dev/null || true)"
+    if [[ -n "$real_path" && -x "$real_path" ]]; then
+      path="$real_path"
+    fi
+
+    if "$path" --version >/dev/null 2>&1; then
+      :
+    elif "$path" --help >/dev/null 2>&1; then
+      :
+    elif "$path" -h >/dev/null 2>&1; then
+      :
+    else
+      continue
+    fi
+
+    if supports_i3lock_color "$path"; then
+      LOCK_BIN="$path"
+      LOCK_MODE="color"
+      return 0
+    fi
+
+    if [[ "$candidate" == "i3lock" ]]; then
+      fallback="$path"
+    elif [[ -z "$fallback" ]]; then
+      fallback="$path"
+    fi
+  done
+
+  if [[ -n "$fallback" ]]; then
+    LOCK_BIN="$fallback"
+    LOCK_MODE="vanilla"
+    return 0
+  fi
+
+  return 1
+}
+
+if ! resolve_lock_binary; then
   echo "Neither i3lock-color nor i3lock was found in PATH." >&2
   exit 127
 fi
 
-if supports_i3lock_color "$LOCK_BIN"; then
+if [[ "$LOCK_MODE" == "color" ]]; then
   LOCK_ARGS=(
     "--insidever-color=${SELECTION}${ALPHA}"
     "--insidewrong-color=${SELECTION}${ALPHA}"
