@@ -90,7 +90,11 @@ set list
 map <leader>l :set list!<CR> " Toggle tabs and EOL
 
 " Color scheme (terminal)
-set t_Co=256
+if has('termguicolors')
+  set termguicolors
+else
+  set t_Co=256
+endif
 set background=dark
 color dracula
 
