@@ -1,6 +1,89 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Usage:
-#   ~ $ fbig
+usage() {
+  cat <<'USAGE'
+Usage: fbig [-s size_in_megabytes] [-n limit] [directory]
 
-find . -size +128M -type f -printf '%s %p\n'| sort -nr | head -16
+List the largest files in directory (defaults to the current directory) that
+are bigger than the given size threshold (defaults to 128 MiB).
+USAGE
+}
+
+size_threshold=128
+limit=16
+search_dir="."
+
+while getopts ":s:n:h" opt; do
+  case $opt in
+    s)
+      if ! [[ ${OPTARG} =~ ^[0-9]+$ ]]; then
+        printf 'Size must be an integer number of mebibytes.\n' >&2
+        exit 1
+      fi
+      size_threshold=${OPTARG}
+      ;;
+    n)
+      if ! [[ ${OPTARG} =~ ^[0-9]+$ ]]; then
+        printf 'Limit must be a positive integer.\n' >&2
+        exit 1
+      fi
+      if (( OPTARG == 0 )); then
+        printf 'Limit must be greater than zero.\n' >&2
+        exit 1
+      fi
+      limit=${OPTARG}
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
+    :)
+      printf 'Option -%s requires an argument.\n' "$OPTARG" >&2
+      usage >&2
+      exit 1
+      ;;
+    \?)
+      printf 'Unknown option: -%s\n' "$OPTARG" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [[ $# -gt 1 ]]; then
+  usage >&2
+  exit 1
+fi
+
+if [[ $# -eq 1 ]]; then
+  search_dir=$1
+fi
+
+if [[ ! -d $search_dir ]]; then
+  printf 'Directory "%s" does not exist.\n' "$search_dir" >&2
+  exit 1
+fi
+
+size_expr="+${size_threshold}M"
+
+mapfile -t files < <(find "$search_dir" -type f -size "$size_expr" -printf '%s\t%p\n' | sort -nr | head -n "$limit")
+
+if [[ ${#files[@]} -eq 0 ]]; then
+  printf 'No files larger than %s MiB were found in %s.\n' "$size_threshold" "$search_dir"
+  exit 0
+fi
+
+printf '%10s  %s\n' 'Size' 'Path'
+printf '%10s  %s\n' '----------' '----'
+for entry in "${files[@]}"; do
+  size_bytes=${entry%%$'\t'*}
+  path=${entry#*$'\t'}
+  if command -v numfmt >/dev/null 2>&1; then
+    human_size=$(numfmt --to=iec-i --suffix=B "$size_bytes")
+  else
+    human_size="$size_bytes B"
+  fi
+  printf '%10s  %s\n' "$human_size" "$path"
+done
