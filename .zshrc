@@ -25,7 +25,12 @@ unset fasd_cache
 alias j="fasd_cd -i"
 
 # add ssh to keychain
-eval `keychain --agents ssh --eval id_ed25519 --quiet`
+if command -v keychain >/dev/null 2>&1; then
+  eval "$(keychain --agents ssh --eval id_ed25519 --quiet)"
+elif [ -z "${_KEYCHAIN_WARNED:-}" ]; then
+  echo "keychain not found; SSH keys not loaded"
+  export _KEYCHAIN_WARNED=1
+fi
 
 # bindkey
 bindkey -e
