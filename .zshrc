@@ -16,13 +16,15 @@ alias ll="ls --color=auto -lshaF"
 alias grep="grep --color=auto"
 
 # fasd :)
-fasd_cache="$HOME/.fasd-init-zsh"
-if [ "$(command -v fasd)" -nt "$fasd_cache" -o ! -s "$fasd_cache" ]; then
-  fasd --init auto posix-alias zsh-hook zsh-ccomp zsh-ccomp-install zsh-wcomp zsh-wcomp-install >| "$fasd_cache"
+if command -v fasd >/dev/null 2>&1; then
+  fasd_cache="$HOME/.fasd-init-zsh"
+  if [ "$(command -v fasd)" -nt "$fasd_cache" -o ! -s "$fasd_cache" ]; then
+    fasd --init auto posix-alias zsh-hook zsh-ccomp zsh-ccomp-install zsh-wcomp zsh-wcomp-install >| "$fasd_cache"
+  fi
+  source "$fasd_cache"
+  unset fasd_cache
+  alias j="fasd_cd -i"
 fi
-source "$fasd_cache"
-unset fasd_cache
-alias j="fasd_cd -i"
 
 # add ssh to keychain
 eval `keychain --agents ssh --eval id_ed25519 --quiet`
