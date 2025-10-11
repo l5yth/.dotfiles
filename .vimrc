@@ -59,14 +59,14 @@ set showmode
 set showcmd
 
 " Searching
-nnoremap / /\v
+nnoremap <silent> / /\v
 vnoremap / /\v
 set hlsearch
 set incsearch
 set ignorecase
 set smartcase
 set showmatch
-map <leader><space> :let @/=''<cr> " clear search
+nnoremap <silent> <leader><space> :let @/=''<CR> " clear search
 
 " Remap help key.
 inoremap <F1> <ESC>:set invfullscreen<CR>a
@@ -74,14 +74,14 @@ nnoremap <F1> :set invfullscreen<CR>
 vnoremap <F1> :set invfullscreen<CR>
 
 " Formatting
-map <leader>q gqip
+nnoremap <leader>q gqip
 
 " Visualize tabs and newlines
 set listchars=trail:~
 set list
 
 " Or use your leader key + l to toggle on/off
-map <leader>l :set list!<CR> " Toggle tabs and EOL
+nnoremap <leader>l :set list!<CR> " Toggle tabs and EOL
 
 " Color scheme (terminal)
 set t_Co=256
