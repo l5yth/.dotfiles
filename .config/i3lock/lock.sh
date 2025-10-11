@@ -18,8 +18,35 @@ GREEN='50fa7b'
 
 LOCK_ARGS=()
 
+supports_i3lock_color() {
+  local candidate="$1"
+  local version_output
+  version_output="$("$candidate" --version 2>&1 || true)"
+  if [[ "$version_output" == *"color"* ]]; then
+    return 0
+  fi
+
+  local help_output
+  if help_output="$("$candidate" --help 2>&1)"; then
+    :
+  elif help_output="$("$candidate" -h 2>&1)"; then
+    :
+  else
+    help_output=""
+  fi
+  [[ "$help_output" == *"--insidever-color"* ]]
+}
+
 if command -v i3lock-color >/dev/null 2>&1; then
   LOCK_BIN="$(command -v i3lock-color)"
+elif command -v i3lock >/dev/null 2>&1; then
+  LOCK_BIN="$(command -v i3lock)"
+else
+  echo "Neither i3lock-color nor i3lock was found in PATH." >&2
+  exit 127
+fi
+
+if supports_i3lock_color "$LOCK_BIN"; then
   LOCK_ARGS=(
     "--insidever-color=${SELECTION}${ALPHA}"
     "--insidewrong-color=${SELECTION}${ALPHA}"
@@ -56,15 +83,11 @@ if command -v i3lock-color >/dev/null 2>&1; then
     "--pass-screen-keys"
     "--pass-volume-keys"
   )
-elif command -v i3lock >/dev/null 2>&1; then
-  LOCK_BIN="$(command -v i3lock)"
+else
   LOCK_ARGS=(
     "-c"
     "${SELECTION#'#'}"
   )
-else
-  echo "Neither i3lock-color nor i3lock was found in PATH." >&2
-  exit 127
 fi
 
 exec "$LOCK_BIN" "${LOCK_ARGS[@]}"
