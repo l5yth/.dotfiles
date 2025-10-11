@@ -23,7 +23,17 @@ if [[ ! -d $root_dir ]]; then
 fi
 
 random_segment() {
-  tr -dc 'a-z0-9' < /dev/urandom | head -c "$1"
+  local length=$1
+  local result=""
+
+  while ((${#result} < length)); do
+    local needed=$((length - ${#result}))
+    local chunk
+    chunk=$(head -c $((needed * 4)) /dev/urandom | LC_ALL=C tr -dc 'a-z0-9')
+    result+=$chunk
+  done
+
+  printf '%s' "${result:0:length}"
 }
 
 first=$(random_segment 8)
