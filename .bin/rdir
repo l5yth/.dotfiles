@@ -1,6 +1,45 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Usage:
-#   ~ $ rdir
+usage() {
+  cat <<'USAGE'
+Usage: rdir [root-directory]
 
-mkdir -p ./$(cat /dev/urandom | tr -cd 'a-z0-9' | head -c 8)/$(cat /dev/urandom | tr -cd 'a-z0-9' | head -c 4)/
+Create a pair of nested random directories beneath root-directory (defaults to
+current working directory) and print the resulting path.
+USAGE
+}
+
+if [[ $# -gt 1 ]]; then
+  usage >&2
+  exit 1
+fi
+
+root_dir=${1:-.}
+
+if [[ ! -d $root_dir ]]; then
+  printf 'Root directory "%s" does not exist.\n' "$root_dir" >&2
+  exit 1
+fi
+
+random_segment() {
+  local length=$1
+  local result=""
+
+  while ((${#result} < length)); do
+    local needed=$((length - ${#result}))
+    local chunk
+    chunk=$(head -c $((needed * 4)) /dev/urandom | LC_ALL=C tr -dc 'a-z0-9')
+    result+=$chunk
+  done
+
+  printf '%s' "${result:0:length}"
+}
+
+first=$(random_segment 8)
+second=$(random_segment 4)
+
+target_dir="$root_dir/$first/$second"
+
+mkdir -p "$target_dir"
+printf '%s\n' "$target_dir"

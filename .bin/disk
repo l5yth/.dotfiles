@@ -1,9 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Usage:
-#   ~ $ disk home
-#  /dev/mapper/home 3.5G free
-#   ~ $ disk root
-#  /dev/mapper/root 59G free
+usage() {
+  cat <<'USAGE'
+Usage: disk <name>
 
-df -h | grep -i $1 | awk '{print $1, $4, "free"}'
+Show the available disk space for the filesystem whose device or mount point
+matches <name> (case-insensitive substring match).
+USAGE
+}
+
+if [[ $# -ne 1 ]]; then
+  usage >&2
+  exit 1
+fi
+
+query=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+match_count=0
+
+while IFS=$'\t' read -r filesystem avail mount_point; do
+  lower_fs=${filesystem,,}
+  lower_mount=${mount_point,,}
+  if [[ $lower_fs == *"$query"* || $lower_mount == *"$query"* ]]; then
+    printf '%-25s %s free\n' "$filesystem" "$avail"
+    ((match_count++))
+  fi
+done < <(df -hP | awk 'NR>1 {print $1 "\t" $4 "\t" $6}')
+
+if [[ $match_count -eq 0 ]]; then
+  printf 'No filesystem or mount point matching "%s" was found.\n' "$1" >&2
+  exit 1
+fi

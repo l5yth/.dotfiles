@@ -1,6 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Usage:
-#   ~ $ signal
+if ! command -v signal-desktop >/dev/null 2>&1; then
+  printf 'signal-desktop is not installed or not on PATH.\n' >&2
+  exit 1
+fi
 
-signal-desktop --start-in-tray
+exec signal-desktop --start-in-tray "$@"
