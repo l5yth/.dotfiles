@@ -63,8 +63,14 @@ export LSCOLORS="exfxcxdxbxegedabagacad"
 export PATH="$PATH:$HOME/.bin"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:$GOPATH/bin"
-export PATH="$PATH:$HOME/.local/share/gem/ruby/3.3.0/bin"
-export PATH="$PATH:$HOME/.gem/ruby/3.3.0/bin"
+if command -v ruby >/dev/null 2>&1; then
+  gem_bindir="$(ruby -e 'print Gem.user_dir')/bin"
+  case ":$PATH:" in
+    *":$gem_bindir:"*) ;;
+    *) export PATH="$PATH:$gem_bindir" ;;
+  esac
+  unset gem_bindir
+fi
 export BUNDLE_PATH="$HOME/.local/share/gem"
 export SHELL="/usr/bin/zsh"
 export GPG_TTY=$TTY
@@ -88,4 +94,4 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # Added by LM Studio CLI (lms)
-export PATH="$PATH:/home/user/.lmstudio/bin"
+export PATH="$PATH:$HOME/.lmstudio/bin"
