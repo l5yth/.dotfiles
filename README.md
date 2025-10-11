@@ -9,7 +9,7 @@ sudo pacman -S base base-devel linux linux-firmware amd-ucode dhcpcd iwd curl zs
 sudo systemctl enable --now dhcpcd iwd
 sudo npm install --global pure-prompt yarn lerna npm bower serve pm2
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
-rm -rf ~/.dotfiles/.gi*
+rm -rf ~/.dotfiles/.gi* ~/.dotfiles/RE* ~/.dotfiles/LI*
 rsync -avh ~/.dotfiles/ $HOME/
 rm -rf ~/.dotfiles/
 chsh -s /usr/bin/zsh
