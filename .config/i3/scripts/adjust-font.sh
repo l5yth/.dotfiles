@@ -65,24 +65,34 @@ read_bar_ids() {
         return 1
     fi
 
-    local in_bar=0 current_id
+    local in_bar=0 brace_depth=0 current_id
     while IFS= read -r line; do
-        if [[ "$line" =~ ^[[:space:]]*bar[[:space:]]*\{ ]]; then
+        if (( !in_bar )) && [[ "$line" =~ ^[[:space:]]*bar[[:space:]]*\{ ]]; then
             in_bar=1
+            brace_depth=0
             current_id=""
-            continue
         fi
 
-        if (( in_bar )) && [[ "$line" =~ ^[[:space:]]*\} ]]; then
-            in_bar=0
-            if [[ -n "$current_id" ]]; then
-                printf '%s\n' "$current_id"
+        if (( in_bar )); then
+            if [[ "$line" =~ ^[[:space:]]*id[[:space:]]+([^[:space:]]+) ]]; then
+                current_id="${BASH_REMATCH[1]}"
             fi
-            continue
-        fi
 
-        if (( in_bar )) && [[ "$line" =~ ^[[:space:]]*id[[:space:]]+([^[:space:]]+) ]]; then
-            current_id="${BASH_REMATCH[1]}"
+            local stripped="${line%%#*}"
+            local braces="${stripped//[^{}]/}"
+            local opens="${braces//\}/}"
+            local closes="${braces//\{/}"
+
+            (( brace_depth += ${#opens} - ${#closes} ))
+
+            if (( brace_depth <= 0 )); then
+                in_bar=0
+                brace_depth=0
+                if [[ -n "$current_id" ]]; then
+                    printf '%s\n' "$current_id"
+                fi
+                current_id=""
+            fi
         fi
     done <<<"$config_text"
 }
