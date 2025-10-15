@@ -223,6 +223,7 @@ for_window [class="^.*"] border pixel 1
 
 # i3bar
 bar {
+        id mainbar
         status_command i3status
         colors {
                 background #282A36
