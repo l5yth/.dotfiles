@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Display free space for filesystems matching a name fragment.
 set -euo pipefail
 
 usage() {

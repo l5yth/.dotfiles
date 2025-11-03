@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
+# List large files above a size threshold, sorted by size.
 set -euo pipefail
 
 usage() {
   cat <<'USAGE'
 Usage: fbig [-s size_in_megabytes] [-n limit] [directory]
 
-List the largest files in directory (defaults to the current directory) that
+List the largest files in a directory (defaults to the current directory) that
 are bigger than the given size threshold (defaults to 128 MiB).
 USAGE
 }

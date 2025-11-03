@@ -1,6 +1,14 @@
 # .dotfiles
 
-Minimal Arch Linux dotfiles.
+Minimal Arch Linux dotfiles for a Dracula-themed i3 desktop.
+
+## Contents
+
+- `.bin/` – helper scripts for storage checks, scratch directories, and chat launchers.
+- `.config/` – i3 window manager, i3status bar, terminal, and editor preferences.
+- `.tmux.conf`, `.tmux/` – tmux configuration and Dracula status line theme.
+- `.vimrc`, `.vim/` – Vim defaults with Dracula colors and airline.
+- `.zsh*` – Zsh prompt, history, and plugin setup (Pure, fasd, autosuggestions, syntax highlighting).
 
 ## Installation
 
