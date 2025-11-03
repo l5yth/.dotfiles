@@ -93,6 +93,9 @@ export MAKEOPTS="-j $(nproc)"
 # fish-like
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
+# auto-suggestions
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
 # fzf :)
 setopt AUTO_CD
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
