@@ -1,16 +1,15 @@
 # added by compinstall
 zstyle :compinstall filename "$HOME/.zshrc"
 autoload -Uz compinit
-compinit
 
 # pure zsh
 fpath=( "$HOME/.zsh/pure" $fpath )
 autoload -U promptinit; promptinit
 prompt pure
-autoload -U compinit && compinit
+compinit
 
 # colors
-eval "`dircolors`"
+eval "$(dircolors)"
 alias ls="ls --color=auto"
 alias ll="ls --color=auto -lshaF"
 alias grep="grep --color=auto"
@@ -70,12 +69,12 @@ add-zsh-hook precmd _shared_history_sync
 export CLICOLOR=true
 export EDITOR=vim
 export GOPATH="$HOME/.go"
-export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
 export LSCOLORS="exfxcxdxbxegedabagacad"
 export PATH="$PATH:$HOME/.bin"
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:$GOPATH/bin"
 if command -v ruby >/dev/null 2>&1; then
+  export GEM_HOME="$(ruby -e 'puts Gem.user_dir')"
   gem_bindir="$(ruby -e 'print Gem.user_dir')/bin"
   case ":$PATH:" in
     *":$gem_bindir:"*) ;;
@@ -85,16 +84,22 @@ if command -v ruby >/dev/null 2>&1; then
 fi
 export BUNDLE_PATH="$HOME/.local/share/gem"
 export SHELL="/usr/bin/zsh"
-export GPG_TTY=$TTY
+if gpg_tty=$(tty 2>/dev/null); then
+  export GPG_TTY="$gpg_tty"
+fi
 export TERMINAL="/usr/bin/terminator"
 export MAKEFLAGS="-j $(nproc)"
 export MAKEOPTS="-j $(nproc)"
 
 # fish-like
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+if [[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+  source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 
 # auto-suggestions
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+if [[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+  source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
 
 # fzf :)
 setopt AUTO_CD
