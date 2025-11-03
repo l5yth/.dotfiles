@@ -5,8 +5,8 @@ Minimal Arch Linux dotfiles.
 ## Installation
 
 ```bash
-sudo pacman -S base base-devel linux linux-firmware amd-ucode dhcpcd iwd curl zsh vim xorg xorg-xinit i3 ttf-dejavu man-pages man-db dmenu polkit xdg-utils nodejs npm git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain ruby btop terminator
-sudo systemctl enable --now dhcpcd iwd
+sudo pacman -S base base-devel linux linux-firmware amd-ucode dhcpcd iwd curl zsh vim xorg xorg-xinit i3 ttf-dejavu man-pages man-db dmenu polkit xdg-utils nodejs npm git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain ruby btop terminator cronie zsh-autosuggestions
+sudo systemctl enable --now dhcpcd iwd cronie
 sudo npm install --global pure-prompt yarn lerna npm bower serve pm2
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
 rm -rf ~/.dotfiles/.gi* ~/.dotfiles/RE* ~/.dotfiles/LI*
@@ -19,8 +19,9 @@ source $HOME/.zshrc
 ## Extras
 
 ```bash
-sudo pacman -S syncthing ttf-fira-code noto-fonts noto-fonts-emoji adwaita-icon-theme cups cups-pdf ranger okular shotwell scrot caja meld mtr code obsidian hplip signal-desktop speedcrunch firefox
-sudo systemctl enable --now syncthing@"$USER"
+sudo pacman -S syncthing ttf-fira-code noto-fonts noto-fonts-emoji adwaita-icon-theme cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger okular shotwell scrot caja meld mtr code obsidian hplip signal-desktop speedcrunch firefox thunderbird eom dysk
+systemctl --user enable --now pipewire wireplumber
+sudo systemctl enable --now bluetooth syncthing@"$USER"
 git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
 pikaur -S i3lock-color brave-bin enpass-bin sublime-text-4 neofetch pinta
 ```
