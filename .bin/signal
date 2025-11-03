@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Launch Signal Desktop minimized to tray when available.
 set -euo pipefail
 
 if ! command -v signal-desktop >/dev/null 2>&1; then

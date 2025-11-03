@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Launch Element Desktop with the dod profile.
 set -euo pipefail
 
 if ! command -v element-desktop >/dev/null 2>&1; then

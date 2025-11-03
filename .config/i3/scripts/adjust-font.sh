@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Pick comfortable i3 fonts based on the tallest connected display.
 set -euo pipefail
 
 DEFAULT_FONT="pango:DejaVu Sans Mono 12"

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Theme i3lock with Dracula colors and friendly status text.
 
 setxkbmap -layout us -option compose:ralt
 
@@ -43,4 +44,3 @@ i3lock \
   --pass-media-keys \
   --pass-screen-keys \
   --pass-volume-keys
-

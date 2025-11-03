@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
+# Create a nested random directory tree and print its path.
 set -euo pipefail
 
 usage() {
   cat <<'USAGE'
 Usage: rdir [root-directory]
 
-Create a pair of nested random directories beneath root-directory (defaults to
-current working directory) and print the resulting path.
+Create a pair of nested random directories beneath the root directory (defaults
+to the current working directory) and print the resulting path.
 USAGE
 }
 

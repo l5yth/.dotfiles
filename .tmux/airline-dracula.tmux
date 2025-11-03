@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Apply a Dracula-inspired status theme to tmux.
 
 main() {
 
