@@ -13,7 +13,7 @@ Minimal Arch Linux dotfiles for a Dracula-themed i3 desktop.
 ## Installation
 
 ```bash
-sudo pacman -S base base-devel linux linux-firmware amd-ucode dhcpcd iwd curl zsh vim xorg xorg-xinit i3 ttf-dejavu man-pages man-db dmenu polkit xdg-utils nodejs npm git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain ruby btop terminator cronie zsh-autosuggestions
+sudo pacman -S base base-devel linux linux-firmware amd-ucode dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 ttf-dejavu man-pages man-db dmenu polkit xdg-utils nodejs npm git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain ruby btop terminator cronie zsh-autosuggestions
 sudo systemctl enable --now dhcpcd iwd cronie
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
 rm -rf ~/.dotfiles/.gi* ~/.dotfiles/RE* ~/.dotfiles/LI*
@@ -30,7 +30,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 nvm install lts/krypton
 npm install --global pure-prompt yarn lerna npm bower serve pm2 @github/copilot @openai/codex
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-sudo pacman -S syncthing ttf-fira-code noto-fonts noto-fonts-emoji adwaita-icon-theme cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger okular shotwell scrot caja meld mtr code obsidian hplip signal-desktop speedcrunch firefox thunderbird eom dysk
+sudo pacman -S syncthing ttf-fira-code noto-fonts noto-fonts-emoji adwaita-icon-theme cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger okular shotwell scrot caja engrampa meld mtr code obsidian hplip signal-desktop speedcrunch firefox thunderbird eom dysk
 systemctl --user enable --now pipewire wireplumber syncthing@"$USER"
 sudo systemctl enable --now bluetooth
 git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
