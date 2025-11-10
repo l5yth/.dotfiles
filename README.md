@@ -34,7 +34,7 @@ sudo pacman -S syncthing ttf-fira-code noto-fonts noto-fonts-emoji adwaita-icon-
 systemctl --user enable --now pipewire wireplumber syncthing@"$USER"
 sudo systemctl enable --now bluetooth
 git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
-pikaur -S i3lock-color brave-bin enpass-bin sublime-text-4 neofetch pinta
+pikaur -S i3lock-color brave-bin enpass-bin sublime-text-4 neofetch pinta xidlehook
 ```
 
 ## Credits
