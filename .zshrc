@@ -112,6 +112,17 @@ echo "Welcome back, $USER! <3"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+nvm use lts/krypton
 
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:$HOME/.lmstudio/bin"
+
+# Android / Flutter
+export ANDROID_HOME="$HOME/.android-sdk"
+export ANDROID_SDK_ROOT="$HOME/.android-sdk"
+export ANDROID_USER_HOME="$HOME/.android"   # optional but recommended
+export PATH="$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+export FVM_CACHE_PATH="$HOME/.fvm"
+export PATH="$FVM_CACHE_PATH/versions/stable/bin:$PATH"
+[[ -f /home/user/.dart-cli-completion/zsh-config.zsh ]] && . /home/user/.dart-cli-completion/zsh-config.zsh || true
+
