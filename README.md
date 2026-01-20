@@ -30,7 +30,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 nvm install lts/krypton
 npm install --global pure-prompt yarn lerna npm serve pm2
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-sudo pacman -S syncthing ttf-fira-code noto-fonts noto-fonts-emoji adwaita-icon-theme adwaita-icon-theme-legacy cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger okular shotwell scrot caja engrampa meld mtr code obsidian hplip signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge eom dysk libreoffice-fresh fastfetch openai-codex github-cli asciiquarium cmatrix vlc gemini-cli sl pavucontrol pasystray
+sudo pacman -S syncthing ttf-fira-code noto-fonts noto-fonts-emoji papirus-icon-theme cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger okular shotwell scrot caja engrampa meld mtr code obsidian hplip signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge eom dysk libreoffice-fresh fastfetch openai-codex github-cli asciiquarium cmatrix vlc gemini-cli sl pavucontrol pasystray
 systemctl --user enable --now pipewire wireplumber syncthing@"$USER"
 sudo systemctl enable --now bluetooth
 git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri

@@ -27,6 +27,7 @@ exec_always --no-startup-id $HOME/.config/i3/scripts/adjust-font.sh "$font_defau
 # https://wiki.archlinux.org/index.php/XDG_Autostart
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id setxkbmap -layout us -option compose:ralt
+exec --no-startup-id pasystray
 bindsym $mod+Shift+s exec setxkbmap -layout us -option compose:ralt
 bindsym $mod+Shift+x exec xrandr-invert-colors
 
@@ -237,4 +238,3 @@ bar {
                 binding_mode       #FF5555 #FF5555 #F8F8F2
         }
 }
-
