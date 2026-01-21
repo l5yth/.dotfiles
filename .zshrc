@@ -69,6 +69,8 @@ add-zsh-hook precmd _shared_history_sync
 export CLICOLOR=true
 export EDITOR=vim
 export GOPATH="$HOME/.go"
+export GOMODCACHE="$GOPATH/pkg/mod"
+export GOCACHE="$HOME/.go/cache"
 export LSCOLORS="exfxcxdxbxegedabagacad"
 export PATH="$PATH:$HOME/.bin"
 export PATH="$PATH:$HOME/.cargo/bin"
@@ -125,4 +127,3 @@ export PATH="$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
 export FVM_CACHE_PATH="$HOME/.fvm"
 export PATH="$FVM_CACHE_PATH/versions/stable/bin:$PATH"
 [[ -f /home/user/.dart-cli-completion/zsh-config.zsh ]] && . /home/user/.dart-cli-completion/zsh-config.zsh || true
-
