@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+command -v rsync >/dev/null || { echo "install.sh: rsync required" >&2; exit 1; }
+
 SRC="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
 if [ "$SRC" = "$HOME" ]; then
@@ -12,7 +14,8 @@ if [ -d "$SRC/.git" ]; then
 	git -C "$SRC" submodule update --init --recursive
 fi
 
-BACKUP=$(mktemp -d "$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)-XXXX")
+BACKUP=$(mktemp -d "$HOME/.dotfiles-backup-XXXXXX")
+trap 'rmdir "$BACKUP" 2>/dev/null || true' EXIT
 
 rsync -avh \
 	--backup --backup-dir="$BACKUP" \
@@ -24,9 +27,8 @@ rsync -avh \
 	--exclude='install.sh' \
 	"$SRC"/ "$HOME"/
 
-rmdir "$BACKUP" 2>/dev/null || true
-if [ -d "$BACKUP" ]; then
-	echo "installed, backup at $BACKUP"
-else
+if [ -z "$(ls -A "$BACKUP")" ]; then
 	echo "installed, no conflicts"
+else
+	echo "installed, backup at $BACKUP"
 fi
