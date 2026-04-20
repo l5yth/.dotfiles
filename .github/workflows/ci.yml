@@ -96,7 +96,7 @@ jobs:
             papirus-icon-theme scrot okular shotwell caja engrampa meld code \
             obsidian signal-desktop element-desktop speedcrunch firefox \
             thunderbird protonmail-bridge eom libreoffice-fresh vlc pavucontrol \
-            pasystray krita
+            pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk
 
       - name: Desktop — AUR packages
         # i3lock ships as part of the `i3` group in Base; remove it so pikaur can
