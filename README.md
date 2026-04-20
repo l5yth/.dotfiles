@@ -22,6 +22,7 @@ nvm install lts/krypton
 npm install --global pure-prompt yarn lerna npm serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl
 git clone https://aur.archlinux.org/pikaur.git && pushd pikaur && makepkg -fsri && popd && rm -rf pikaur/
+rustup default stable
 pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service
 ```
 

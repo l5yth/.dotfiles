@@ -77,6 +77,7 @@ jobs:
             git clone https://aur.archlinux.org/pikaur.git
             cd pikaur
             makepkg -fsri --noconfirm
+            rustup default stable
             pikaur -S --noconfirm --needed claude-code pipes.sh lsu-git psn-git pass-secret-service
           '
 
