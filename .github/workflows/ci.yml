@@ -95,8 +95,12 @@ jobs:
             pasystray krita
 
       - name: Desktop — AUR packages
+        # i3lock ships as part of the `i3` group in Base; remove it so pikaur can
+        # install i3lock-color without the interactive conflict prompt that
+        # `--noconfirm` defaults to No.
         run: |
           sudo -u builder bash -euc '
+            sudo pacman -Rdd --noconfirm i3lock
             pikaur -S --noconfirm --needed \
               i3lock-color xidlehook xrandr-invert-colors brave-bin \
               enpass-bin sublime-text-4 pinta
