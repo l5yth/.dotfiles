@@ -7,4 +7,4 @@ if ! command -v signal-desktop >/dev/null 2>&1; then
   exit 1
 fi
 
-exec signal-desktop --start-in-tray "$@"
+exec signal-desktop --password-store=basic --start-in-tray "$@"

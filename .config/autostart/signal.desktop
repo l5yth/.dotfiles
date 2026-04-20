@@ -1,5 +1,5 @@
 [Desktop Entry]
 Type=Application
 Name=Signal
-Exec=signal-desktop --start-in-tray
+Exec=signal-desktop --password-store=basic --start-in-tray
 X-GNOME-Autostart-enabled=true
