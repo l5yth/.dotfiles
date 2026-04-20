@@ -53,11 +53,9 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_VERIFY
 setopt SHARE_HISTORY
-HISTCONTROL="ignoredups:erasedups"
 HISTFILE="$HOME/.histfile"
-HISTFILESIZE=100000
 HISTSIZE=100000
-SAVEHIST=10000000
+SAVEHIST=1000000
 autoload -Uz add-zsh-hook
 _shared_history_sync() {
   fc -AI
@@ -91,7 +89,6 @@ if gpg_tty=$(tty 2>/dev/null); then
 fi
 export TERMINAL="/usr/bin/terminator"
 export MAKEFLAGS="-j $(nproc)"
-export MAKEOPTS="-j $(nproc)"
 
 # fish-like
 if [[ -r /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
@@ -126,4 +123,4 @@ export ANDROID_USER_HOME="$HOME/.android"   # optional but recommended
 export PATH="$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
 export FVM_CACHE_PATH="$HOME/.fvm"
 export PATH="$FVM_CACHE_PATH/versions/stable/bin:$PATH"
-[[ -f /home/user/.dart-cli-completion/zsh-config.zsh ]] && . /home/user/.dart-cli-completion/zsh-config.zsh || true
+[[ -f "$HOME/.dart-cli-completion/zsh-config.zsh" ]] && . "$HOME/.dart-cli-completion/zsh-config.zsh" || true

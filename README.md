@@ -32,7 +32,7 @@ pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service
 sudo pacman -S syncthing hplip cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger ttf-fira-code noto-fonts noto-fonts-emoji papirus-icon-theme scrot okular shotwell caja engrampa meld code obsidian signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge eom libreoffice-fresh vlc pavucontrol pasystray krita
 sudo systemctl enable --now bluetooth
 systemctl --user enable --now syncthing pipewire wireplumber
-pikaur -S i3lock-color xidlehook brave-bin enpass-bin sublime-text-4 pinta
+pikaur -S i3lock-color xidlehook xrandr-invert-colors brave-bin enpass-bin sublime-text-4 pinta
 ```
 
 ## SSH-Keys
