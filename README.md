@@ -8,9 +8,7 @@ Arch Linux dotfiles for a Dracula-themed i3 desktop.
 sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 dex ttf-dejavu man-pages man-db dmenu polkit xdg-utils nodejs npm rustup python git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain pass pinentry ruby btop terminator cronie zsh-autosuggestions nmap ufw zsh-completions
 sudo systemctl enable --now dhcpcd iwd cronie ufw
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
-rm -rf ~/.dotfiles/.gi* ~/.dotfiles/RE* ~/.dotfiles/LI*
-rsync -avh ~/.dotfiles/ $HOME/
-rm -rf ~/.dotfiles/
+~/.dotfiles/install.sh
 chsh -s /usr/bin/zsh
 source $HOME/.zshrc
 ```
