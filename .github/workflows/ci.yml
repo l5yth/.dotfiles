@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   readme:
     name: README walkthrough (Arch)
@@ -73,11 +77,11 @@ jobs:
       - name: Extras — pikaur + AUR packages
         run: |
           sudo -u builder bash -euc '
+            rustup default stable
             cd "$(mktemp -d)"
             git clone https://aur.archlinux.org/pikaur.git
             cd pikaur
             makepkg -fsri --noconfirm
-            rustup default stable
             pikaur -S --noconfirm --needed claude-code pipes.sh lsu-git psn-git pass-secret-service
           '
 
@@ -107,11 +111,14 @@ jobs:
           '
 
       - name: SSH-Keys
+        # Mirrors README verbatim; -N "" -f add only what ssh-keygen needs to run
+        # non-interactively. $HOST defaults to "ci" here (the Arch container has
+        # no hostname env var set).
         run: |
           sudo -u builder bash -euc '
-            chmod 700 ~/.ssh
-            [ -f ~/.ssh/authorized_keys ] && chmod 600 ~/.ssh/authorized_keys
-            ssh-keygen -t ed25519 -C "$USER@ci-$(date +%F)" -N "" -f ~/.ssh/id_ed25519
+            HOST=ci
+            chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
+            ssh-keygen -t ed25519 -C "$USER@$HOST-$(date +%F)" -N "" -f ~/.ssh/id_ed25519
           '
 
       - name: Proton Mail — GPG key + pass init

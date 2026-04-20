@@ -24,7 +24,7 @@ Intentional CI divergences from the README (documented inline in the workflow):
 
 - `systemctl enable --now …` lines are dropped — the Arch container has no systemd.
 - `chsh -s` becomes `usermod -s` (runs as root).
-- `source $HOME/.zshrc` is deferred to the final step, because `.zshrc:114` runs `nvm use lts/krypton` unconditionally and would fail before Extras installs nvm.
+- `source $HOME/.zshrc` is deferred to the final step, because `.zshrc` runs `nvm use lts/krypton` unconditionally and would fail before Extras installs nvm.
 - `protonmail-bridge-core --cli` login is skipped (interactive); only the `pass init` prerequisite is exercised with a headless GPG key.
 - `$GITHUB_WORKSPACE` is passed to sudo'd shells as a positional arg, not via env (sudo strips env and the inner `bash -eu` would die on unbound expansion).
 

@@ -23,9 +23,9 @@ rsync -avh \
 	--exclude='.github/' \
 	--exclude='.gitignore' \
 	--exclude='.gitmodules' \
-	--exclude='README.md' \
-	--exclude='LICENSE' \
 	--exclude='CLAUDE.md' \
+	--exclude='LICENSE' \
+	--exclude='README.md' \
 	--exclude='install.sh' \
 	"$SRC"/ "$HOME"/
 
