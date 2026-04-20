@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BACKUP="${1:-}"
+if [ -z "$BACKUP" ]; then
+	BACKUP=$(ls -dt "$HOME"/.dotfiles-backup-* 2>/dev/null | head -n1 || true)
+fi
+if [ -z "$BACKUP" ] || [ ! -d "$BACKUP" ]; then
+	echo "usage: dotfiles-resolve [backup-dir]" >&2
+	echo "(no ~/.dotfiles-backup-* found)" >&2
+	exit 1
+fi
+
+DIFFTOOL="${DIFFTOOL:-vimdiff}"
+
+mapfile -t files < <(diff -rq "$BACKUP/" "$HOME/" 2>/dev/null | awk '/^Files /{print $2}')
+
+if [ "${#files[@]}" -eq 0 ]; then
+	echo "no conflicts in $BACKUP"
+	find "$BACKUP" -type d -empty -delete 2>/dev/null || true
+	exit 0
+fi
+
+echo "$BACKUP: ${#files[@]} file(s) differ"
+
+for src in "${files[@]}"; do
+	rel=${src#"$BACKUP"/}
+	dst=$HOME/$rel
+	while :; do
+		echo
+		echo "=== $rel ==="
+		diff -u "$src" "$dst" | sed -n '1,40p' || true
+		read -rp "[k]eep current / [r]estore backup / [m]erge / [s]kip / [q]uit > " ans
+		case "$ans" in
+			k|K) rm -f "$src"; break ;;
+			r|R) cp -a "$src" "$dst"; rm -f "$src"; break ;;
+			m|M) "$DIFFTOOL" "$dst" "$src" </dev/tty ;;
+			s|S) break ;;
+			q|Q) exit 0 ;;
+		esac
+	done
+done
+
+find "$BACKUP" -type d -empty -delete 2>/dev/null || true
+if [ -d "$BACKUP" ]; then
+	echo "unresolved entries remain in $BACKUP"
+else
+	echo "backup dir removed: $BACKUP"
+fi
