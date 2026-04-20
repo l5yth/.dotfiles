@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  readme:
+    name: README walkthrough (Arch)
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+    timeout-minutes: 180
+
+    steps:
+      - name: Refresh keyring & system
+        run: |
+          pacman -Sy --noconfirm archlinux-keyring
+          pacman -Syu --noconfirm --disable-download-timeout
+
+      - name: Install sudo & git, create builder user
+        run: |
+          pacman -S --noconfirm --needed sudo git
+          useradd -m -G wheel -s /bin/bash builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' >/etc/sudoers.d/builder
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Base — pacman packages
+        # systemctl enable --now {dhcpcd,iwd,cronie,ufw} from the README is skipped:
+        # the arch container has no running systemd to accept unit state changes.
+        run: |
+          pacman -S --noconfirm --needed \
+            base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim \
+            xorg xorg-xinit i3 dex ttf-dejavu man-pages man-db dmenu polkit \
+            xdg-utils nodejs npm rustup python git rsync fasd fzf tmux \
+            zsh-syntax-highlighting openssh keychain pass pinentry ruby btop \
+            terminator cronie zsh-autosuggestions nmap ufw zsh-completions
+
+      - name: Base — clone + install.sh + chsh
+        run: |
+          chown -R builder:builder "$GITHUB_WORKSPACE"
+          sudo -u builder bash -euc '
+            cp -a "$GITHUB_WORKSPACE" "$HOME/.dotfiles"
+            "$HOME/.dotfiles/install.sh"
+            test -f "$HOME/.zshrc"
+            test -d "$HOME/.zsh/pure"
+            test -x "$HOME/.bin/dotfiles-resolve"
+          '
+          usermod -s /usr/bin/zsh builder
+
+      - name: Extras — nvm, Node, global npm packages
+        run: |
+          sudo -u builder bash -euc '
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+            export NVM_DIR="$HOME/.nvm"
+            . "$NVM_DIR/nvm.sh"
+            nvm install lts/krypton
+            npm install --global pure-prompt yarn lerna npm serve pm2
+          '
+
+      - name: Extras — official packages
+        run: |
+          pacman -S --noconfirm --needed \
+            mtr dysk fastfetch github-cli asciiquarium cmatrix sl
+
+      - name: Extras — pikaur + AUR packages
+        run: |
+          sudo -u builder bash -euc '
+            cd "$(mktemp -d)"
+            git clone https://aur.archlinux.org/pikaur.git
+            cd pikaur
+            makepkg -fsri --noconfirm
+            pikaur -S --noconfirm --needed claude-code pipes.sh lsu-git psn-git pass-secret-service
+          '
+
+      - name: Desktop — official packages
+        # systemctl enable --now bluetooth and the `--user` pipewire/syncthing lines
+        # are skipped for the same reason as the Base section.
+        run: |
+          pacman -S --noconfirm --needed \
+            syncthing hplip cups cups-pdf brightnessctl bluez bluez-utils \
+            pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber \
+            alsa-utils ranger ttf-fira-code noto-fonts noto-fonts-emoji \
+            papirus-icon-theme scrot okular shotwell caja engrampa meld code \
+            obsidian signal-desktop element-desktop speedcrunch firefox \
+            thunderbird protonmail-bridge eom libreoffice-fresh vlc pavucontrol \
+            pasystray krita
+
+      - name: Desktop — AUR packages
+        run: |
+          sudo -u builder bash -euc '
+            pikaur -S --noconfirm --needed \
+              i3lock-color xidlehook xrandr-invert-colors brave-bin \
+              enpass-bin sublime-text-4 pinta
+          '
+
+      - name: SSH-Keys
+        run: |
+          sudo -u builder bash -euc '
+            chmod 700 ~/.ssh
+            [ -f ~/.ssh/authorized_keys ] && chmod 600 ~/.ssh/authorized_keys
+            ssh-keygen -t ed25519 -C "$USER@ci-$(date +%F)" -N "" -f ~/.ssh/id_ed25519
+          '
+
+      - name: Proton Mail — GPG key + pass init
+        # `protonmail-bridge-core --cli` is an interactive network login and
+        # cannot run in CI; we exercise the GPG + pass prerequisites only.
+        run: |
+          sudo -u builder bash -euc '
+            cat >/tmp/gpg.batch <<EOF
+          %no-protection
+          Key-Type: default
+          Subkey-Type: default
+          Name-Real: CI Tester
+          Name-Email: ci@example.com
+          Expire-Date: 0
+          EOF
+            gpg --batch --generate-key /tmp/gpg.batch
+            KEY=$(gpg --list-keys --with-colons | awk -F: "/^fpr/{print \$10; exit}")
+            pass init "$KEY"
+            command -v protonmail-bridge-core
+          '
+
+      - name: Smoke-test .zshrc under a fresh zsh
+        run: |
+          sudo -u builder zsh -c 'source "$HOME/.zshrc" && echo zshrc-ok'

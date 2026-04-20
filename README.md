@@ -9,6 +9,7 @@ sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vi
 sudo systemctl enable --now dhcpcd iwd cronie ufw
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
 ~/.dotfiles/install.sh
+dotfiles-resolve
 chsh -s /usr/bin/zsh
 source $HOME/.zshrc
 ```
