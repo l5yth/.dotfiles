@@ -20,10 +20,12 @@ trap 'rmdir "$BACKUP" 2>/dev/null || true' EXIT
 rsync -avh \
 	--backup --backup-dir="$BACKUP" \
 	--exclude='.git/' \
+	--exclude='.github/' \
 	--exclude='.gitignore' \
 	--exclude='.gitmodules' \
 	--exclude='README.md' \
 	--exclude='LICENSE' \
+	--exclude='CLAUDE.md' \
 	--exclude='install.sh' \
 	"$SRC"/ "$HOME"/
 

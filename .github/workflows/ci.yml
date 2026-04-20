@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -45,12 +46,13 @@ jobs:
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           sudo -u builder bash -euc '
-            cp -a "$GITHUB_WORKSPACE" "$HOME/.dotfiles"
+            src=$1
+            cp -a "$src" "$HOME/.dotfiles"
             "$HOME/.dotfiles/install.sh"
             test -f "$HOME/.zshrc"
             test -d "$HOME/.zsh/pure"
             test -x "$HOME/.bin/dotfiles-resolve"
-          '
+          ' _ "$GITHUB_WORKSPACE"
           usermod -s /usr/bin/zsh builder
 
       - name: Extras — nvm, Node, global npm packages
