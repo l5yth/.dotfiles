@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+dest="$HOME/.config/i3status/wttr"
+
+content=$(curl -fsS --max-time 10 'https://wttr.in/Berlin?format=1' | tr -d ' \t\n\r')
+[ -n "$content" ] || { echo "wttr: empty response" >&2; exit 1; }
+[ "${#content}" -le 10 ] || { echo "wttr: suspicious output (${#content} chars): $content" >&2; exit 1; }
+
+tmp="$(mktemp "$dest.XXXXXX")"
+trap 'rm -f "$tmp"' EXIT
+printf '%s' "$content" > "$tmp"
+mv "$tmp" "$dest"
