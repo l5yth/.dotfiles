@@ -9,6 +9,7 @@ sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vi
 sudo systemctl enable --now dhcpcd iwd cronie ufw
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
 ~/.dotfiles/install.sh
+dotfiles-resolve
 chsh -s /usr/bin/zsh
 source $HOME/.zshrc
 ```
@@ -20,6 +21,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 nvm install lts/krypton
 npm install --global pure-prompt yarn lerna npm serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl
+rustup default stable
 git clone https://aur.archlinux.org/pikaur.git && pushd pikaur && makepkg -fsri && popd && rm -rf pikaur/
 pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service
 ```
