@@ -35,9 +35,10 @@ systemctl --user enable --now syncthing pipewire wireplumber
 pikaur -S i3lock-color xidlehook brave-bin enpass-bin sublime-text-4 pinta
 ```
 
-## SSH-Key Generation
+## SSH-Keys
 
 ```bash
+chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
 ssh-keygen -t ed25519 -C "$USER@$HOST-$(date +%F)"
 ```
 
