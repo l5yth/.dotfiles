@@ -119,10 +119,13 @@ jobs:
         # cannot run in CI; we exercise the GPG + pass prerequisites only.
         run: |
           sudo -u builder bash -euc '
+            mkdir -p ~/.gnupg && chmod 700 ~/.gnupg
             cat >/tmp/gpg.batch <<EOF
           %no-protection
-          Key-Type: default
-          Subkey-Type: default
+          Key-Type: RSA
+          Key-Length: 2048
+          Subkey-Type: RSA
+          Subkey-Length: 2048
           Name-Real: CI Tester
           Name-Email: ci@example.com
           Expire-Date: 0
