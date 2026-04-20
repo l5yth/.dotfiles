@@ -19,7 +19,7 @@ source $HOME/.zshrc
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 nvm install lts/krypton
-npm install --global pure-prompt yarn lerna npm serve pm2
+npm install --global yarn lerna npm serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl
 rustup default stable
 git clone https://aur.archlinux.org/pikaur.git && pushd pikaur && makepkg -fsri && popd && rm -rf pikaur/
