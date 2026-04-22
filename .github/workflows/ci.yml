@@ -148,24 +148,29 @@ jobs:
           '
 
       - name: Proton Mail — GPG key + pass init
-        # `protonmail-bridge-core --cli` is an interactive network login and
-        # cannot run in CI; we exercise the GPG + pass prerequisites only.
+        # Mirrors the README block. Two intentional divergences:
+        #  - Key-Length trimmed to 2048 so CI spends seconds, not minutes,
+        #    waiting on /dev/random during key gen.
+        #  - `protonmail-bridge-core --cli` is an interactive network login
+        #    and is swapped for `command -v` so we only check the prerequisite
+        #    binary landed; the user unit `enable --now` line is dropped for
+        #    the same systemd-in-container reason as Base/Desktop.
         run: |
           sudo -u builder bash -euc '
             mkdir -p ~/.gnupg && chmod 700 ~/.gnupg
-            cat >/tmp/gpg.batch <<EOF
+            if ! gpg --list-secret-keys --with-colons | grep -q "^sec"; then
+              gpg --batch --generate-key <<EOF
           %no-protection
           Key-Type: RSA
           Key-Length: 2048
           Subkey-Type: RSA
           Subkey-Length: 2048
-          Name-Real: CI Tester
-          Name-Email: ci@example.com
+          Name-Real: $USER
+          Name-Email: $USER@${HOSTNAME:-ci}
           Expire-Date: 0
           EOF
-            gpg --batch --generate-key /tmp/gpg.batch
-            KEY=$(gpg --list-keys --with-colons | awk -F: "/^fpr/{print \$10; exit}")
-            pass init "$KEY"
+            fi
+            pass init "$(gpg --list-secret-keys --with-colons | awk -F: "/^fpr/{print \$10; exit}")"
             command -v protonmail-bridge-core
           '
 

@@ -74,10 +74,26 @@ ssh-keygen -t ed25519 -C "$USER@$HOST-$(date +%F)"
 
 ## Proton Mail
 
-Requires a GPG key; import yours or run `gpg --full-generate-key`.
+The snippet auto-generates a passwordless per-machine GPG key if none exists
+and uses it to initialise `pass` (the Bridge keyring backend). Filesystem
+perms on `~/.gnupg/` and `~/.password-store/` are the protection — no
+passphrase to type on every unlock, no interactive prompts on new systems.
 
 ```bash
-pass init <GPG-KEY-ID>
+if ! gpg --list-secret-keys --with-colons | grep -q '^sec'; then
+  gpg --batch --generate-key <<EOF
+%no-protection
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: $USER
+Name-Email: $USER@$(hostname)
+Expire-Date: 0
+EOF
+fi
+pass init "$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')"
+
 protonmail-bridge-core --cli
 # >>> login
 # >>> info     # shows IMAP/SMTP host + bridge password for Thunderbird
