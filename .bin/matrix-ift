@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch Element Desktop with the cbs profile.
+# Launch Element Desktop with the dod profile.
 set -euo pipefail
 
 if ! command -v element-desktop >/dev/null 2>&1; then
@@ -7,4 +7,4 @@ if ! command -v element-desktop >/dev/null 2>&1; then
   exit 1
 fi
 
-exec element-desktop --hidden --profile cbs "$@"
+exec element-desktop --hidden --profile ift "$@"
