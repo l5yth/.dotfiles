@@ -22,7 +22,7 @@ nvm install lts/krypton
 npm install --global yarn lerna npm serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl
 rustup default stable
-git clone https://aur.archlinux.org/pikaur.git && pushd pikaur && makepkg -fsri && popd && rm -rf pikaur/
+cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
 pikaur -S claude-code pipes.sh lsu-git psn-git
 ```
 
@@ -36,9 +36,7 @@ the fix.
 
 ```bash
 sudo pacman -Rdd --noconfirm pass-secret-service 2>/dev/null || true
-cd "$(mktemp -d)"
-git clone https://aur.archlinux.org/pass-secret-service-git.git
-cd pass-secret-service-git
+cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pass-secret-service-git.git && cd pass-secret-service-git
 curl -fsSLo pr24.patch https://patch-diff.githubusercontent.com/raw/grimsteel/pass-secret-service/pull/24.patch
 cat >>PKGBUILD <<'EOF'
 
@@ -53,7 +51,6 @@ prepare() {
 }
 EOF
 makepkg -si --noconfirm
-systemctl --user enable --now pass-secret-service.service
 ```
 
 ## Desktop
@@ -80,6 +77,7 @@ perms on `~/.gnupg/` and `~/.password-store/` are the protection — no
 passphrase to type on every unlock, no interactive prompts on new systems.
 
 ```bash
+mkdir -p ~/.gnupg && chmod 700 ~/.gnupg
 if ! gpg --list-secret-keys --with-colons | grep -q '^sec'; then
   gpg --batch --generate-key <<EOF
 %no-protection
