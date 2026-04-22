@@ -23,7 +23,37 @@ npm install --global yarn lerna npm serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl
 rustup default stable
 git clone https://aur.archlinux.org/pikaur.git && pushd pikaur && makepkg -fsri && popd && rm -rf pikaur/
-pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service
+pikaur -S claude-code pipes.sh lsu-git psn-git
+```
+
+<!--
+Temporary: patched `pass-secret-service-git` build carrying
+https://github.com/grimsteel/pass-secret-service/pull/24. Delete this block
+and move `pass-secret-service-git` onto the pikaur line above once the PR
+merges and the AUR package rebuilds against a grimsteel/main that contains
+the fix.
+-->
+
+```bash
+sudo pacman -Rdd --noconfirm pass-secret-service 2>/dev/null || true
+cd "$(mktemp -d)"
+git clone https://aur.archlinux.org/pass-secret-service-git.git
+cd pass-secret-service-git
+curl -fsSLo pr24.patch https://patch-diff.githubusercontent.com/raw/grimsteel/pass-secret-service/pull/24.patch
+cat >>PKGBUILD <<'EOF'
+
+# Temporary override to apply grimsteel/pass-secret-service#24 before build.
+# Bash keeps the last definition of prepare(); this replaces the upstream one.
+prepare() {
+  export CARGO_HOME="${srcdir}/.cargo"
+  cd "${srcdir}/${_pkgname}"
+  patch -p1 < "${startdir}/pr24.patch"
+  cargo fetch
+  git log > "${srcdir}/git.log"
+}
+EOF
+makepkg -si --noconfirm
+systemctl --user enable --now pass-secret-service.service
 ```
 
 ## Desktop
@@ -44,10 +74,26 @@ ssh-keygen -t ed25519 -C "$USER@$HOST-$(date +%F)"
 
 ## Proton Mail
 
-Requires a GPG key; import yours or run `gpg --full-generate-key`.
+The snippet auto-generates a passwordless per-machine GPG key if none exists
+and uses it to initialise `pass` (the Bridge keyring backend). Filesystem
+perms on `~/.gnupg/` and `~/.password-store/` are the protection — no
+passphrase to type on every unlock, no interactive prompts on new systems.
 
 ```bash
-pass init <GPG-KEY-ID>
+if ! gpg --list-secret-keys --with-colons | grep -q '^sec'; then
+  gpg --batch --generate-key <<EOF
+%no-protection
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: $USER
+Name-Email: $USER@$(hostname)
+Expire-Date: 0
+EOF
+fi
+pass init "$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')"
+
 protonmail-bridge-core --cli
 # >>> login
 # >>> info     # shows IMAP/SMTP host + bridge password for Thunderbird

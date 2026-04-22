@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The repo root is a direct overlay of `$HOME`. A file at `./.zshrc` installs to `$HOME/.zshrc`; `./.config/i3/config` to `$HOME/.config/i3/config`; etc. Adding a new top-level entry means it will ship to every installed machine unless explicitly excluded in `install.sh`.
 
-Metadata that must NOT land in `$HOME`: `.git/`, `.gitignore`, `.gitmodules`, `README.md`, `LICENSE`, `install.sh`, `CLAUDE.md`, `.github/`. The exclude list in `install.sh` enforces this — update it when adding new metadata.
+Metadata that must NOT land in `$HOME`: `.git/`, `.gitignore`, `.gitmodules`, `README.md`, `LICENSE`, `install.sh`, `CLAUDE.md`, `.github/`, `.claude/`. The exclude list in `install.sh` enforces this — update it when adding new metadata.
 
 ## Install flow
 

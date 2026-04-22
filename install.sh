@@ -24,6 +24,7 @@ trap 'rmdir "$BACKUP" 2>/dev/null || true' EXIT
 
 rsync -avh \
 	--backup --backup-dir="$BACKUP" \
+	--exclude='.claude/' \
 	--exclude='.git/' \
 	--exclude='.github/' \
 	--exclude='.gitignore' \

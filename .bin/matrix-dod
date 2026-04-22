@@ -7,4 +7,4 @@ if ! command -v element-desktop >/dev/null 2>&1; then
   exit 1
 fi
 
-exec element-desktop --password-store=basic --hidden --profile dod "$@"
+exec element-desktop --hidden --profile dod "$@"
