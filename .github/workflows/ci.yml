@@ -146,14 +146,16 @@ jobs:
           '
 
       - name: SSH-Keys
-        # Mirrors README verbatim; -N "" -f add only what ssh-keygen needs to run
-        # non-interactively. $HOST defaults to "ci" here (the Arch container has
-        # no hostname env var set).
+        # Mirrors README verbatim. `-N ""` is now in both places (the key is
+        # deliberately passphrase-less — see README SSH-Keys prose + CLAUDE.md
+        # rationale). `-f ~/.ssh/id_ed25519` is the only CI-only bit: skips
+        # the interactive file-path prompt, since the container has no TTY.
+        # $HOST defaults to "ci" here (the Arch container has no HOST env set).
         run: |
           sudo -u builder bash -euc '
             HOST=ci
             chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
-            ssh-keygen -t ed25519 -C "$USER@$HOST-$(date +%F)" -N "" -f ~/.ssh/id_ed25519
+            ssh-keygen -t ed25519 -N "" -C "$USER@$HOST-$(date +%F)" -f ~/.ssh/id_ed25519
           '
 
       - name: Proton Mail — GPG key + pass init

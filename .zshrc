@@ -25,7 +25,11 @@ if command -v fasd >/dev/null 2>&1; then
   alias j="fasd_cd -i"
 fi
 
-# add ssh to keychain
+# keychain starts an ssh-agent on first login and reuses $SSH_AUTH_SOCK
+# across subsequent shells so every terminal shares one unlocked key. Our
+# id_ed25519 is passphrase-less (see README SSH-Keys), so the passphrase-
+# cache role is moot — keychain still pulls its weight as agent supervision
+# and per-user socket plumbing, which is why the line stays.
 if command -v keychain >/dev/null 2>&1; then
   eval "$(keychain --eval --quiet id_ed25519)"
 elif [ -z "${_KEYCHAIN_WARNED:-}" ]; then

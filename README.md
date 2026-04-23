@@ -77,8 +77,12 @@ pikaur -S i3lock-color xidlehook xrandr-invert-colors brave-bin enpass-bin subli
 
 ```bash
 chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
-ssh-keygen -t ed25519 -C "$USER@$HOST-$(date +%F)"
+ssh-keygen -t ed25519 -N "" -C "$USER@$HOST-$(date +%F)"
 ```
+<!--
+# To drop the passphrase on an existing key instead:
+ssh-keygen -p -N "" -f ~/.ssh/id_ed25519
+-->
 
 ## GPG / Pass / Proton Mail
 
