@@ -1,0 +1,9 @@
+[user]
+	email = 58883403+q9f@users.noreply.github.com
+	name = q9f
+	username = q9f
+	signingkey = E79CDFA171DC2DF9
+[github]
+	user = q9f
+[core]
+	sshCommand = ssh -i ~/.ssh/id_ed25519_q9f

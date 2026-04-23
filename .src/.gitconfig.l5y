@@ -1,0 +1,9 @@
+[user]
+	email = 220195275+l5yth@users.noreply.github.com
+	name = l5y
+	username = l5y
+	signingkey = 88E0758A7475CA21
+[github]
+	user = l5yth
+[core]
+	sshCommand = ssh -i ~/.ssh/id_ed25519

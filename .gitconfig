@@ -1,0 +1,15 @@
+[includeIf "gitdir:~/.src/"]
+	path = ~/.src/.gitconfig.l5y
+[includeIf "gitdir:~/.q9f/"]
+	path = ~/.q9f/.gitconfig.q9f
+[commit]
+	gpgsign = true
+	signoff = true
+[push]
+	default = matching
+[format]
+	signoff = true
+[pull]
+	ff = only
+[init]
+	defaultBranch = main
