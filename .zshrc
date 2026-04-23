@@ -56,6 +56,12 @@ setopt SHARE_HISTORY
 HISTFILE="$HOME/.histfile"
 HISTSIZE=100000
 SAVEHIST=1000000
+# SHARE_HISTORY alone only picks up new entries when a shell reads history
+# at its next command. With many concurrent terminals, that means a command
+# run in terminal A won't show up in terminal B's up-arrow until B runs its
+# own next command — too late if you want to `!!` a sibling shell's line.
+# The precmd hook flushes this shell's new entries (fc -AI) and re-reads
+# the shared file (fc -R) on every prompt, so all open shells converge.
 autoload -Uz add-zsh-hook
 _shared_history_sync() {
   fc -AI
@@ -84,6 +90,11 @@ if command -v ruby >/dev/null 2>&1; then
 fi
 export BUNDLE_PATH="$HOME/.local/share/gem"
 export SHELL="/usr/bin/zsh"
+# GPG_TTY lets gpg-agent fall back to pinentry-curses on this terminal when
+# no GUI pinentry is reachable (e.g., SSH sessions, or pinentry-gtk failing
+# with "Inappropriate ioctl for device" because the agent was started by
+# systemd without DISPLAY). Guarded by `tty` so non-interactive shells and
+# piped invocations don't export a bogus "not a tty" value.
 if gpg_tty=$(tty 2>/dev/null); then
   export GPG_TTY="$gpg_tty"
 fi
@@ -108,6 +119,11 @@ setopt AUTO_CD
 echo "Welcome back, $USER! <3"
 
 # NVM
+# `lts/krypton` is a moving codename — verify against `nvm list` before
+# "upgrading" it (see memory: feedback_nvm_lts_krypton.md). This line runs
+# unconditionally on every shell start, which is why CI defers sourcing
+# .zshrc until after the Extras step installs nvm (see CLAUDE.md — the
+# README ↔ ci.yml coupling documents this specific divergence).
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
