@@ -51,6 +51,9 @@ jobs:
           ufw default allow outgoing
 
       - name: Base — clone + install.sh + chsh
+        # The wttr-fetch crontab entry only edits /var/spool/cron/<user>; it
+        # works in the container even though cronie.service isn't running,
+        # which lets us exercise the README command without a real scheduler.
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           sudo -u builder bash -euc '
@@ -60,6 +63,8 @@ jobs:
             test -f "$HOME/.zshrc"
             test -d "$HOME/.zsh/pure"
             test -x "$HOME/.bin/dotfiles-resolve"
+            ( crontab -l 2>/dev/null | grep -vF "wttr-fetch" ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ) | crontab -
+            crontab -l | grep -qF "wttr-fetch"
           ' _ "$GITHUB_WORKSPACE"
           usermod -s /usr/bin/zsh builder
 
