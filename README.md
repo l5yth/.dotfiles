@@ -6,12 +6,22 @@ Arch Linux dotfiles for a Dracula-themed i3 desktop.
 
 ```bash
 sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 dex ttf-dejavu man-pages man-db dmenu polkit xdg-utils nodejs npm rustup python git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain pass pinentry ruby btop terminator cronie zsh-autosuggestions nmap ufw zsh-completions
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
 sudo systemctl enable --now dhcpcd iwd cronie ufw
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
 ~/.dotfiles/install.sh
 dotfiles-resolve
 chsh -s /usr/bin/zsh
 source $HOME/.zshrc
+```
+
+CPU microcode: pick one based on your CPU.
+
+```bash
+grep -m1 '^vendor_id' /proc/cpuinfo
+sudo pacman -S intel-ucode   # Intel only
+sudo pacman -S amd-ucode     # AMD only
 ```
 
 ## Extras
