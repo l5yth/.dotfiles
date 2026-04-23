@@ -13,6 +13,7 @@ git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
 ~/.dotfiles/install.sh
 dotfiles-resolve
 chsh -s /usr/bin/zsh
+( crontab -l 2>/dev/null | grep -vF 'wttr-fetch' ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ) | crontab -
 source $HOME/.zshrc
 ```
 
