@@ -27,6 +27,7 @@ Intentional CI divergences from the README (documented inline in the workflow):
 - `source $HOME/.zshrc` is deferred to the final step, because `.zshrc` runs `nvm use lts/krypton` unconditionally and would fail before Extras installs nvm.
 - `protonmail-bridge-core --cli` login is skipped (interactive); only the `pass init` prerequisite is exercised with a headless GPG key.
 - `$GITHUB_WORKSPACE` is passed to sudo'd shells as a positional arg, not via env (sudo strips env and the inner `bash -eu` would die on unbound expansion).
+- The CPU microcode block (`intel-ucode` / `amd-ucode`) is skipped — the container has no bootloader to consume the microcode blobs, and the choice is vendor-specific per machine rather than a portable default. Keep the README note; don't add the packages to `ci.yml`.
 
 ## Inline documentation in configs
 
