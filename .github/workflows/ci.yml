@@ -157,29 +157,36 @@ jobs:
           '
 
       - name: Proton Mail — GPG key + pass init
-        # Mirrors the README block. Two intentional divergences:
-        #  - Key-Length trimmed to 2048 so CI spends seconds, not minutes,
-        #    waiting on /dev/random during key gen.
-        #  - `protonmail-bridge-core --cli` is an interactive network login
-        #    and is swapped for `command -v` so we only check the prerequisite
-        #    binary landed; the user unit `enable --now` line is dropped for
-        #    the same systemd-in-container reason as Base/Desktop.
+        # Mirrors the README block. Divergences:
+        #  - `protonmail-bridge-core --cli` is an interactive network login,
+        #    swapped for `command -v` so we only check the prerequisite
+        #    binary landed.
+        #  - `systemctl --user restart pass-secret-service` and
+        #    `systemctl --user enable --now protonmail-bridge` are dropped
+        #    for the same no-systemd-in-container reason as Base/Desktop.
+        # Fingerprint comes from gpg's own --status-file (KEY_CREATED line),
+        # never from `gpg --list-secret-keys` — the README spec explicitly
+        # forbids a list-based guard so the generated key is always the pass
+        # recipient regardless of what other keys exist on the machine.
         run: |
           sudo -u builder bash -euc '
             mkdir -p ~/.gnupg && chmod 700 ~/.gnupg
-            if ! gpg --list-secret-keys --with-colons | grep -q "^sec"; then
-              gpg --batch --generate-key <<EOF
+            gen_status=$(mktemp)
+            gpg --batch --generate-key --status-file "$gen_status" <<EOF
           %no-protection
-          Key-Type: RSA
-          Key-Length: 2048
-          Subkey-Type: RSA
-          Subkey-Length: 2048
-          Name-Real: $USER
-          Name-Email: $USER@${HOSTNAME:-ci}
+          Key-Type: EDDSA
+          Key-Curve: ed25519
+          Subkey-Type: ECDH
+          Subkey-Curve: cv25519
+          Name-Real: pass
+          Name-Email: pass@${HOSTNAME:-ci}
           Expire-Date: 0
+          %commit
           EOF
-            fi
-            pass init "$(gpg --list-secret-keys --with-colons | awk -F: "/^fpr/{print \$10; exit}")"
+            fpr=$(awk "/^\[GNUPG:\] KEY_CREATED/ {print \$4; exit}" "$gen_status")
+            rm -f "$gen_status"
+            pass init "$fpr"
+            pass ls >/dev/null
             command -v protonmail-bridge-core
           '
 

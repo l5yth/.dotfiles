@@ -28,11 +28,12 @@ font $font_default
 exec_always --no-startup-id $HOME/.config/i3/scripts/adjust-font.sh "$font_default" "$font_small"
 
 # Plumb the current X session's DISPLAY/GPG_TTY into the systemd-started
-# gpg-agent so pinentry-gtk can actually draw a prompt. Without this, the
-# first post-boot PKDECRYPT fails with "Inappropriate ioctl for device",
-# pass-secret-service returns no value to Chromium safeStorage, and
-# Chromium silently mints a new key and overwrites the old one —
-# irrecoverably corrupting Signal/Element SQLCipher DBs.
+# gpg-agent so pinentry-gtk can draw a prompt for GUI gpg flows (git
+# signing from an editor, `pass show` from dmenu, etc.). This is NOT the
+# guardrail against Signal/Element safeStorage corruption anymore — that
+# path is closed by the pass GPG key being passphrase-less (see CLAUDE.md
+# "Secret-service / pinentry invariant"). Keep the line; it's cheap and
+# useful whenever something else does need to prompt for a passphrase.
 exec_always --no-startup-id gpg-connect-agent updatestartuptty /bye >/dev/null
 
 # Start XDG autostart .desktop files using dex. See also

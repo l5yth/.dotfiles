@@ -80,28 +80,26 @@ chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
 ssh-keygen -t ed25519 -C "$USER@$HOST-$(date +%F)"
 ```
 
-## Proton Mail
-
-The snippet auto-generates a passwordless per-machine GPG key if none exists
-and uses it to initialise `pass` (the Bridge keyring backend). Filesystem
-perms on `~/.gnupg/` and `~/.password-store/` are the protection — no
-passphrase to type on every unlock, no interactive prompts on new systems.
+## GPG / Pass / Proton Mail
 
 ```bash
 mkdir -p ~/.gnupg && chmod 700 ~/.gnupg
-if ! gpg --list-secret-keys --with-colons | grep -q '^sec'; then
-  gpg --batch --generate-key <<EOF
+gen_status=$(mktemp)
+gpg --batch --generate-key --status-file "$gen_status" <<EOF
 %no-protection
-Key-Type: RSA
-Key-Length: 4096
-Subkey-Type: RSA
-Subkey-Length: 4096
-Name-Real: $USER
-Name-Email: $USER@$(hostname)
+Key-Type: EDDSA
+Key-Curve: ed25519
+Subkey-Type: ECDH
+Subkey-Curve: cv25519
+Name-Real: pass
+Name-Email: pass@$(hostname)
 Expire-Date: 0
+%commit
 EOF
-fi
-pass init "$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr/{print $10; exit}')"
+fpr=$(awk '/^\[GNUPG:\] KEY_CREATED/ {print $4; exit}' "$gen_status")
+rm -f "$gen_status"
+pass init "$fpr"
+systemctl --user restart pass-secret-service
 
 protonmail-bridge-core --cli
 # >>> login
