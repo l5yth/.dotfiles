@@ -92,7 +92,7 @@ Key-Curve: ed25519
 Subkey-Type: ECDH
 Subkey-Curve: cv25519
 Name-Real: pass
-Name-Email: pass@$(hostname)
+Name-Email: pass@$HOST
 Expire-Date: 0
 %commit
 EOF
