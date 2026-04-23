@@ -21,14 +21,31 @@ set $locker $HOME/.config/i3lock/lock.sh
 set $font_default "pango:DejaVu Sans Mono 12"
 set $font_small   "pango:DejaVu Sans Mono 10"
 font $font_default
+# Pick i3bar/window-title font size from the tallest connected display
+# (see the script's xrandr probe). `exec_always` so plugging in an external
+# monitor and running `i3-msg reload` re-evaluates the choice instead of
+# leaving a tiny-laptop font on a 4K panel.
 exec_always --no-startup-id $HOME/.config/i3/scripts/adjust-font.sh "$font_default" "$font_small"
+
+# Plumb the current X session's DISPLAY/GPG_TTY into the systemd-started
+# gpg-agent so pinentry-gtk can actually draw a prompt. Without this, the
+# first post-boot PKDECRYPT fails with "Inappropriate ioctl for device",
+# pass-secret-service returns no value to Chromium safeStorage, and
+# Chromium silently mints a new key and overwrites the old one —
+# irrecoverably corrupting Signal/Element SQLCipher DBs.
+exec_always --no-startup-id gpg-connect-agent updatestartuptty /bye >/dev/null
 
 # Start XDG autostart .desktop files using dex. See also
 # https://wiki.archlinux.org/index.php/XDG_Autostart
 exec --no-startup-id dex --autostart --environment i3
+# US layout with right-Alt as the Compose key, so sequences like
+# `Compose ' e` → é and `Compose o e` → œ work without switching layouts.
+# The $mod+Shift+s bind re-applies it after things that clobber the XKB
+# state (hot-plugged keyboards, some Electron/IME apps stealing the layout).
 exec --no-startup-id setxkbmap -layout us -option compose:ralt
-exec --no-startup-id gpg --batch --yes -d ~/.password-store/.gpg-id.gpg > /dev/null 2>&1 || true
 bindsym $mod+Shift+s exec setxkbmap -layout us -option compose:ralt
+# Invert the whole X server's colors — cheap "dark mode" for apps that
+# don't honor a theme (PDF viewers, legacy GTK2 dialogs, etc.).
 bindsym $mod+Shift+x exec xrandr-invert-colors
 
 # The combination of xss-lock, nm-applet and pactl is a popular choice, so
@@ -36,11 +53,18 @@ bindsym $mod+Shift+x exec xrandr-invert-colors
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
+# xidlehook: after 900s (15 min) of X idle, run $locker. `--detect-sleep`
+# resets the timer on resume from suspend/hibernate so we don't insta-lock
+# the user out the moment the lid opens. Replacement for xss-lock/xautolock
+# — see commit 88a56cf for the switch rationale.
 exec --no-startup-id xidlehook --detect-sleep --timer 900 "$locker" ""
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 ### exec --no-startup-id nm-applet
+# Welcome terminal on login: runs fastfetch (logo + system summary) and
+# `--hold` keeps the window open after fastfetch exits so the output stays
+# on screen for the user to read, rather than closing in a flash.
 exec --no-startup-id i3-sensible-terminal --hold -e fastfetch
 
 # Use pactl to adjust volume in PulseAudio.
@@ -64,6 +88,10 @@ bindsym $mod+Return exec i3-sensible-terminal
 bindsym $mod+Shift+q kill
 
 # start dmenu (a program launcher)
+# Colors are the Dracula palette (https://draculatheme.com/contribute):
+# normal fg/bg = Foreground/Background, selected fg/bg = Foreground/Comment.
+# Matches the i3bar block at the bottom of this file and the client.*
+# entries above — keep them in sync when re-theming.
 bindsym $mod+d exec --no-startup-id "dmenu_run -nf '#F8F8F2' -nb '#282A36' -sb '#6272A4' -sf '#F8F8F2' -fn 'DejaVu Sans Mono-12' -p 'dmenu%'"
 
 # A more modern dmenu replacement is rofi:
