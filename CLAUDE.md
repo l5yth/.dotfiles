@@ -28,10 +28,28 @@ Intentional CI divergences from the README (documented inline in the workflow):
 - `protonmail-bridge-core --cli` login is skipped (interactive); only the `pass init` prerequisite is exercised with a headless GPG key.
 - `$GITHUB_WORKSPACE` is passed to sudo'd shells as a positional arg, not via env (sudo strips env and the inner `bash -eu` would die on unbound expansion).
 
+## Inline documentation in configs
+
+The shipped configs are the documentation. For non-obvious lines in `.zshrc`, `.xinitrc`, `.config/i3/**`, `.bin/**`, systemd units, and autostart `*.desktop` files, leave a short (1–4 line) comment above the line explaining *why* it's there — the failure mode it prevents, the race it closes, the upstream bug it works around, the ordering constraint from systemd/X/dbus. Don't restate what the command does; explain what breaks if the line is removed.
+
+This inverts the usual "default to no comments" rule — only for dotfiles configs, and only for non-obvious lines. Skip aliases, plain env exports, and wizard-default keybindings. Bar: *would a reader be surprised or confused by this line six months from now?* Link commits, PRs, or READMEs when the rationale lives elsewhere (e.g., the `88a56cf` reference above the `xidlehook` exec in `.config/i3/config`).
+
+## Secret-service / pinentry invariant
+
+Signal, Element, and other Chromium/Electron apps keep their SQLCipher key at rest in `~/.config/<app>/config.json` (`encryptedKey`), symmetrically encrypted by a 16-byte secret fetched from `pass-secret-service` via libsecret. That secret is stored as a gpg-encrypted file under `~/.password-store/secret-service/Default/*.gpg`, so every read requires `gpg-agent` + `pinentry`.
+
+If pinentry can't prompt when Chromium calls `secret_item_get_secret()`, `KeyStorageLibsecret::GetKeyImpl()` does not distinguish "item missing" from "item unreadable" — it silently generates a new random 16-byte key and writes it back, overwriting the old `*.gpg` value. The app's on-disk `encryptedKey` is still encrypted with the old key, so the next launch fails SQLCipher's page-1 HMAC check (`SQLITE_NOTADB: file is not a database`). The old key is unrecoverable; only `rm -rf ~/.config/<app>` + relink restores the app.
+
+The guardrail is `exec_always --no-startup-id gpg-connect-agent updatestartuptty /bye` in `.config/i3/config`, ordered before `dex --autostart`. It plumbs the X session's `DISPLAY`/`GPG_TTY` into the systemd-started gpg-agent so pinentry-gtk has a display to draw on. **Do not remove or reorder this past `dex` unless every Chromium/Electron autostart is also gone** — leaving it off turns every boot into a dice roll on whether your Signal DB survives.
+
+Diagnostic signature when this fails: `journalctl --user -u gpg-agent` shows `command 'PKDECRYPT' failed: Inappropriate ioctl for device <Pinentry>` within a second of the app's `Database startup error: sqlite error(SQLITE_NOTADB)`. Separate failure mode from the DH-padding bug patched in the README Extras / CI `pass-secret-service-git` build block — always check `gpg-agent` logs before suspecting the transport patch.
+
 ## Validation commands
 
 - `bash -n install.sh` — syntax check before committing script edits.
 - `HOME=$(mktemp -d) ./install.sh` — exercise the full copy + backup flow against a scratch `$HOME`.
 - `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` — quick YAML parse check for workflow edits.
+- `i3 -C -c .config/i3/config` — validate the i3 config before reload.
+- `bash -n .zshrc` — syntax check zsh rc edits (zsh itself has no `-n`-equivalent for interactive rc files; bash is close enough for the subset we use).
 
 There is no test suite. CI is the integration test.
