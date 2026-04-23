@@ -38,6 +38,8 @@ jobs:
       - name: Base — pacman packages
         # systemctl enable --now {dhcpcd,iwd,cronie,ufw} from the README is skipped:
         # the arch container has no running systemd to accept unit state changes.
+        # `ufw default …` policy commands only edit /etc/default/ufw, so they
+        # work fine without a kernel netfilter or a running service.
         run: |
           pacman -S --noconfirm --needed \
             base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim \
@@ -45,6 +47,8 @@ jobs:
             xdg-utils nodejs npm rustup python git rsync fasd fzf tmux \
             zsh-syntax-highlighting openssh keychain pass pinentry ruby btop \
             terminator cronie zsh-autosuggestions nmap ufw zsh-completions
+          ufw default deny incoming
+          ufw default allow outgoing
 
       - name: Base — clone + install.sh + chsh
         run: |
