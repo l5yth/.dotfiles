@@ -13,7 +13,6 @@ git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
 ~/.dotfiles/install.sh
 dotfiles-resolve
 chsh -s /usr/bin/zsh
-( crontab -l 2>/dev/null | grep -vF 'wttr-fetch' ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ) | crontab -
 source $HOME/.zshrc
 ```
 
@@ -67,10 +66,11 @@ makepkg -si --noconfirm
 ## Desktop
 
 ```bash
-sudo pacman -S syncthing hplip cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger ttf-fira-code noto-fonts noto-fonts-emoji papirus-icon-theme scrot okular shotwell caja engrampa meld code obsidian signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge eom libreoffice-fresh vlc pavucontrol pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk
+sudo pacman -S syncthing hplip cups cups-pdf brightnessctl bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger ttf-fira-code noto-fonts noto-fonts-emoji papirus-icon-theme scrot okular shotwell caja engrampa meld code obsidian signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge protonmail-bridge-core eom libreoffice-fresh vlc pavucontrol pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk
 sudo systemctl enable --now bluetooth
 systemctl --user enable --now syncthing pipewire wireplumber
 pikaur -S i3lock-color xidlehook xrandr-invert-colors brave-bin enpass-bin sublime-text-4 pinta
+( crontab -l 2>/dev/null | grep -vF 'wttr-fetch' ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ) | crontab -
 ```
 
 ## SSH-Keys
