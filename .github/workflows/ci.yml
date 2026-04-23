@@ -63,7 +63,7 @@ jobs:
             test -f "$HOME/.zshrc"
             test -d "$HOME/.zsh/pure"
             test -x "$HOME/.bin/dotfiles-resolve"
-            ( crontab -l 2>/dev/null | grep -vF "wttr-fetch" ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ) | crontab -
+            { crontab -l 2>/dev/null | grep -vF "wttr-fetch" || true ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ; } | crontab -
             crontab -l | grep -qF "wttr-fetch"
           ' _ "$GITHUB_WORKSPACE"
           usermod -s /usr/bin/zsh builder
