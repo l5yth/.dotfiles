@@ -33,34 +33,7 @@ npm install --global yarn lerna npm serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl
 rustup default stable
 cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
-pikaur -S claude-code pipes.sh lsu-git psn-git
-```
-
-<!--
-Temporary: patched `pass-secret-service-git` build carrying
-https://github.com/grimsteel/pass-secret-service/pull/24. Delete this block
-and move `pass-secret-service-git` onto the pikaur line above once the PR
-merges and the AUR package rebuilds against a grimsteel/main that contains
-the fix.
--->
-
-```bash
-sudo pacman -Rdd --noconfirm pass-secret-service 2>/dev/null || true
-cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pass-secret-service-git.git && cd pass-secret-service-git
-curl -fsSLo pr24.patch https://patch-diff.githubusercontent.com/raw/grimsteel/pass-secret-service/pull/24.patch
-cat >>PKGBUILD <<'EOF'
-
-# Temporary override to apply grimsteel/pass-secret-service#24 before build.
-# Bash keeps the last definition of prepare(); this replaces the upstream one.
-prepare() {
-  export CARGO_HOME="${srcdir}/.cargo"
-  cd "${srcdir}/${_pkgname}"
-  patch -p1 < "${startdir}/pr24.patch"
-  cargo fetch
-  git log > "${srcdir}/git.log"
-}
-EOF
-makepkg -si --noconfirm
+pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service-git
 ```
 
 ## Desktop
