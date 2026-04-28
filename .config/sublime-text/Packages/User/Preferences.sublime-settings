@@ -19,4 +19,19 @@
 		"Vintage",
   ],
   "index_files": true,
+  "auto_complete_triggers":
+  [
+		{
+			"characters": "<",
+			"selector": "text.html, text.xml",
+		},
+		{
+			"rhs_empty": true,
+			"selector": "punctuation.accessor",
+		},
+		{
+			"characters": "\\",
+			"selector": "text.tex.latex",
+		}
+  ],
 }
