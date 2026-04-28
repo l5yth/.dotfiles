@@ -1,4 +1,5 @@
 .claude/
+.config/i3status/wttr
 .fasd
 .viminfo
 .zcompdump
