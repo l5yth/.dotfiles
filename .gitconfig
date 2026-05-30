@@ -2,6 +2,8 @@
 	path = ~/.src/.gitconfig.l5y
 [includeIf "gitdir:~/.q9f/"]
 	path = ~/.q9f/.gitconfig.q9f
+[includeIf "gitdir:~/.cod/"]
+	path = ~/.cod/.gitconfig.cod
 [commit]
 	gpgsign = true
 	signoff = true
