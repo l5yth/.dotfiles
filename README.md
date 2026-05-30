@@ -60,7 +60,7 @@ ssh-keygen -p -N "" -f ~/.ssh/id_ed25519
 ## GPG / Pass / Proton Mail
 
 ```bash
-mkdir -p ~/.gnupg && chmod 700 ~/.gnupg && chmod 600 ~/.gnupg/*
+mkdir -p ~/.gnupg && chmod -R u=rwX,go= ~/.gnupg
 gen_status=$(mktemp)
 gpg --batch --generate-key --status-file "$gen_status" <<EOF
 %no-protection
