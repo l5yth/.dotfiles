@@ -1,4 +1,12 @@
-.claude/
+# .claude/ is a $HOME overlay: deny everything, allow only curated config.
+# Guarantees credentials/history/projects/sessions/caches can never be committed.
+/.claude/*
+!/.claude/commands/
+!/.claude/skills/
+!/.claude/agents/
+!/.claude/hooks/
+!/.claude/CLAUDE.md
+!/.claude/settings.json
 .config/i3status/wttr
 .fasd
 .viminfo

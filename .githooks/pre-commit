@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Backstop against committing Claude Code secrets/state even via `git add -f` or an
+# edited .gitignore. The .claude/ overlay ships only curated config; credentials,
+# history, and session transcripts must never reach the remote. See CLAUDE.md.
+deny='(^|/)\.credentials\.json$|(^|/)history\.jsonl$|(^|/)\.claude/settings\.local\.json$|(^|/)\.claude/mcp-needs-auth-cache\.json$|(^|/)\.claude/(projects|sessions|shell-snapshots|cache|paste-cache|file-history|backups|debug|session-env|tasks|plans|plugins)/'
+
+blocked=$(git diff --cached --name-only --diff-filter=ACM | grep -E "$deny" || true)
+if [ -n "$blocked" ]; then
+	echo "pre-commit: refusing to commit Claude secrets/state:" >&2
+	echo "$blocked" | sed 's/^/  /' >&2
+	echo "These are local/deploy-time only. Override with --no-verify if you are certain." >&2
+	exit 1
+fi

@@ -12,6 +12,8 @@ fi
 
 if [ -d "$SRC/.git" ]; then
 	git -C "$SRC" submodule update --init --recursive
+	# Git hooks in .git/hooks/ aren't version-controlled; point at the tracked guard.
+	git -C "$SRC" config core.hooksPath .githooks
 fi
 
 for prior in "$HOME"/.dotfiles-backup-*; do
@@ -22,17 +24,27 @@ done
 BACKUP=$(mktemp -d "$HOME/.dotfiles-backup-XXXXXX")
 trap 'rmdir "$BACKUP" 2>/dev/null || true' EXIT
 
+# .claude/ now ships as a $HOME overlay (see CLAUDE.md). Excludes keep repo metadata,
+# process docs, and any machine-local/state/secret .claude paths out of $HOME; .gitignore
+# is the primary guard against committing them — these are deploy-time defense-in-depth.
 rsync -avh \
 	--backup --backup-dir="$BACKUP" \
-	--exclude='.claude/' \
 	--exclude='.git/' \
 	--exclude='.github/' \
+	--exclude='.githooks/' \
 	--exclude='.gitignore' \
 	--exclude='.gitmodules' \
 	--exclude='CLAUDE.md' \
 	--exclude='LICENSE' \
 	--exclude='README.md' \
+	--exclude='SPEC.md' \
+	--exclude='ACCEPTANCE.md' \
 	--exclude='install.sh' \
+	--exclude='.claude/settings.local.json' \
+	--exclude='.claude/.credentials.json' \
+	--exclude='.claude/history.jsonl' \
+	--exclude='.claude/projects/' \
+	--exclude='.claude/sessions/' \
 	"$SRC"/ "$HOME"/
 
 if [ -z "$(ls -A "$BACKUP")" ]; then

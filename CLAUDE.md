@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The repo root is a direct overlay of `$HOME`. A file at `./.zshrc` installs to `$HOME/.zshrc`; `./.config/i3/config` to `$HOME/.config/i3/config`; etc. Adding a new top-level entry means it will ship to every installed machine unless explicitly excluded in `install.sh`.
 
-Metadata that must NOT land in `$HOME`: `.git/`, `.gitignore`, `.gitmodules`, `README.md`, `LICENSE`, `install.sh`, `CLAUDE.md`, `.github/`, `.claude/`. The exclude list in `install.sh` enforces this — update it when adding new metadata.
+Metadata that must NOT land in `$HOME`: `.git/`, `.gitignore`, `.gitmodules`, `.githooks/`, `README.md`, `LICENSE`, `install.sh`, `SPEC.md`, `ACCEPTANCE.md`, `CLAUDE.md`, `.github/`. The exclude list in `install.sh` enforces this — update it when adding new metadata. (`.claude/` **does** ship now — see §Claude Code config.)
 
 ## Install flow
 
@@ -15,6 +15,14 @@ Metadata that must NOT land in `$HOME`: `.git/`, `.gitignore`, `.gitmodules`, `R
 Conflict handling: rsync's `--backup --backup-dir` moves any file it would overwrite into `$(mktemp -d "$HOME/.dotfiles-backup-XXXXXX")`. A trap removes the backup dir if empty (both on success and on rsync failure). `.bin/dotfiles-resolve` walks a backup dir interactively (keep / restore / merge / skip) — use it to clean up after updates.
 
 Symlinks inside `.zsh/pure/` (`async -> async.zsh`, `prompt_pure_setup -> pure.zsh`) are preserved by `rsync -a` and must stay intact; do not flatten or dereference that directory.
+
+## Claude Code config (`.claude/` overlay)
+
+`.claude/` is a `$HOME` overlay like everything else: `.claude/commands/foo.md` installs to `~/.claude/commands/foo.md`. Edit config **here in the repo**, commit, and `install.sh` rsyncs it into `~/.claude/`; don't edit `~/.claude/` in place for tracked files — the next install overwrites them (the backup dir catches you if you forget).
+
+`~/.claude/` mixes config with runtime state and secrets, so `.gitignore` is **default-deny** for this tree: everything under `.claude/` is ignored except `commands/`, `skills/`, `agents/`, `hooks/`, `CLAUDE.md`, and `settings.json`. Never relax that without re-checking what gets exposed — `.credentials.json`, `history.jsonl`, `projects/`, `sessions/`, and the caches must never be committed. `settings.local.json` stays untracked **and** rsync-excluded (`install.sh`): it holds machine-local permission allowlists with absolute paths. Put per-machine settings there, shared settings in `settings.json`.
+
+`.githooks/pre-commit` (wired via `core.hooksPath` in `install.sh`) is the backstop: it refuses to commit those secret/state paths even through `git add -f`. Keep it tracked so a fresh clone gets the guard after the first `install.sh`.
 
 ## README ↔ CI coupling
 
