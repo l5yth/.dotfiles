@@ -21,6 +21,13 @@ set $locker $HOME/.config/i3lock/lock.sh
 set $font_default "pango:DejaVu Sans Mono 12"
 set $font_small   "pango:DejaVu Sans Mono 10"
 font $font_default
+
+# amdgpu re-enumerates outputs when the monitors wake from DPMS power-save and
+# can swap DisplayPort-1/HDMI-A-0 left<->right. autorandr re-applies the saved
+# "desktop" profile (.config/autorandr/) to pin the layout; its udev hook does
+# this on hotplug, so this exec_always is just the session-start/reload baseline.
+exec_always --no-startup-id autorandr --change
+
 # Pick i3bar/window-title font size from the tallest connected display
 # (see the script's xrandr probe). `exec_always` so plugging in an external
 # monitor and running `i3-msg reload` re-evaluates the choice instead of

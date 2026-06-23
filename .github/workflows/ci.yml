@@ -99,7 +99,7 @@ jobs:
         # are skipped for the same reason as the Base section.
         run: |
           pacman -S --noconfirm --needed \
-            syncthing hplip cups cups-pdf brightnessctl bluez bluez-utils \
+            syncthing hplip cups cups-pdf brightnessctl autorandr bluez bluez-utils \
             pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber \
             alsa-utils ranger ttf-fira-code noto-fonts noto-fonts-emoji \
             papirus-icon-theme scrot okular shotwell caja engrampa meld code \
