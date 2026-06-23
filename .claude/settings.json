@@ -2,5 +2,8 @@
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true
   },
-  "theme": "dark-ansi"
+  "theme": "dark-ansi",
+  "env": {
+    "CLAUDE_CODE_EFFORT_LEVEL": "max"
+  }
 }

@@ -75,8 +75,54 @@ All ten decisions below were confirmed in the kickoff interview (2026-06-12). Pe
 10. **[confirmed] Seed + scope boundary.** Copy `~/.claude/commands/kickoff.md` →
     `.dotfiles/.claude/commands/kickoff.md` as the first tracked content. No new
     agents/skills/commands are authored in this project.
+    *(Update 2026-06-23: this "no new commands" boundary governed the fold-in project
+    only. `bugfix.md` and `feature.md` were later added as deliberate curated content in
+    `6f5cd0f`; the tracked-command set is allowed to grow. ACCEPTANCE E2 tracks the
+    current set rather than the kickoff-only snapshot.)*
 
 ## Non-goals
 
 Authoring stash content; symlink/stow deployment; bootstrap changes beyond `install.sh`
 + docs; tracking `plugins/` bodies (only their enablement in `settings.json`).
+
+---
+
+## Feature: Persist max effort level
+
+**Goal.** Make Claude Code default to `max` reasoning effort on every session and every
+installed machine, persisted through the dotfiles deploy — instead of re-setting it by
+hand with `/effort` each session.
+
+**Core decision driven.** *How* a default effort level is persisted, given that the
+supported persistent key (`effortLevel`) accepts only `low|medium|high|xhigh` and
+silently downgrades `max` → `xhigh`. The only mechanism that persists literal `max` is
+the `CLAUDE_CODE_EFFORT_LEVEL` environment variable.
+
+All six decisions confirmed 2026-06-23. Per the discipline in §Key decisions above,
+re-verify them at each checkpoint so the build doesn't drift.
+
+1. **[confirmed] Mechanism.** Persist effort by setting `CLAUDE_CODE_EFFORT_LEVEL=max`
+   in an `"env"` block in the tracked shared `.claude/settings.json`. Do **not** use the
+   `effortLevel` key — it rejects `max` and downgrades to `xhigh`. *(Doc-verified against
+   the Claude Code settings reference; re-verify against the installed CLI at build.)*
+2. **[confirmed] Scope.** Shared across all machines: the env var lives in the tracked
+   `settings.json`, not `settings.local.json`. Consequence, accepted as a trade-off: every
+   session on every installed machine runs at max effort with no cap on token spend.
+3. **[confirmed] Extends D6 (settings split).** The shared `settings.json` may now carry
+   an `"env"` block, not only `theme` + `enabledPlugins`. Same principle as D6 — shared,
+   non-secret, non-machine-specific config is tracked; machine-local/secret stays in the
+   rsync-excluded, gitignored `settings.local.json`. D6's `settings.local.json` policy is
+   unchanged.
+4. **[confirmed] Extends D8 (doc sync) / §Inline documentation.** Because `settings.json`
+   is strict JSON and cannot carry inline comments, the non-obvious rationale — *why the
+   env var and not `effortLevel`* — is documented in `CLAUDE.md` §"Claude Code config"
+   instead of inline. This is the one config line whose "why" the repo's inline-comment
+   discipline cannot host; `CLAUDE.md` carries it.
+5. **[confirmed] Reaffirms D2 (truth flow).** The `/effort` command and the CLI write
+   effort changes to the *live* `~/.claude/settings.json`; per D2 the repo copy is
+   canonical and `install.sh` overwrites the live copy on the next run (backups catch you).
+   With repo-side env-max, no live `/effort` is needed to persist, so the canonical copy
+   stays authoritative.
+6. **[confirmed] Reaffirms D5/D7/D9 (no deploy/ignore/guard change).** `settings.json` is
+   already tracked, whitelisted, and deployed, so this feature touches **no** other
+   machinery: `install.sh`, `.gitignore`, and `.githooks/pre-commit` are unchanged.

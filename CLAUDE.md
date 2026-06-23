@@ -22,6 +22,8 @@ Symlinks inside `.zsh/pure/` (`async -> async.zsh`, `prompt_pure_setup -> pure.z
 
 `~/.claude/` mixes config with runtime state and secrets, so `.gitignore` is **default-deny** for this tree: everything under `.claude/` is ignored except `commands/`, `skills/`, `agents/`, `hooks/`, `CLAUDE.md`, and `settings.json`. Never relax that without re-checking what gets exposed — `.credentials.json`, `history.jsonl`, `projects/`, `sessions/`, and the caches must never be committed. `settings.local.json` stays untracked **and** rsync-excluded (`install.sh`): it holds machine-local permission allowlists with absolute paths. Put per-machine settings there, shared settings in `settings.json`.
 
+**Effort level.** `settings.json` pins `env.CLAUDE_CODE_EFFORT_LEVEL=max` so every machine defaults to max reasoning effort. It must be the env var, *not* the `effortLevel` key: that key's schema is `enum(low|medium|high|xhigh)` and silently downgrades `max` → `xhigh` (`.catch(void 0)` drops anything else), which is also why the `/effort max` command is session-only. The env var is the only path that persists literal `max`. JSON can't carry an inline comment, so this rationale lives here instead of next to the line — full decision record in `SPEC.md` / `ACCEPTANCE.md` §Feature: Persist max effort level. Trade-off: max uncaps token spend on every session and machine; lower that value or drop the `env` block on any machine that shouldn't pay it.
+
 `.githooks/pre-commit` (wired via `core.hooksPath` in `install.sh`) is the backstop: it refuses to commit those secret/state paths even through `git add -f`. Keep it tracked so a fresh clone gets the guard after the first `install.sh`.
 
 ## README ↔ CI coupling

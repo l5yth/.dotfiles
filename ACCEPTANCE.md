@@ -123,10 +123,12 @@ A great result satisfies **every** criterion below.
   Verify: `git ls-files .claude/commands/kickoff.md` is non-empty; if the live source
   still exists, `diff ~/.claude/commands/kickoff.md .claude/commands/kickoff.md` → no diff.
 
-- **E2 — No new stash content authored.** The only tracked command is `kickoff.md`; no
-  agents/skills were created.
-  Verify: `git ls-files .claude/commands/` lists exactly `kickoff.md`;
-  `git ls-files .claude/agents/ .claude/skills/` is empty.
+- **E2 — Tracked content is the curated command set; no agents/skills.** The tracked
+  commands are exactly the curated set `bugfix.md`, `feature.md`, `kickoff.md`
+  (`bugfix`/`feature` added in `6f5cd0f`, after the fold-in project — see the SPEC D10
+  update note); no agents or skills are tracked. This feature authored no new commands.
+  Verify: `git ls-files .claude/commands/` lists exactly those three `.md` files and
+  nothing else; `git ls-files .claude/agents/ .claude/skills/` is empty.
 
 ## F. No regressions  (SPEC D3, D7)
 
@@ -161,3 +163,68 @@ A great result satisfies **every** criterion below.
 | 8 Doc sync | D1, D2, D3 |
 | 9 Secrets guard | B2 |
 | 10 Seed + scope | C2, E1, E2 |
+
+---
+
+## Feature: Persist max effort level  (Feature SPEC FD1–FD6)
+
+Verifies the feature appended to `SPEC.md` under the same heading. Same idiom as A–F:
+each criterion is a command plus its expected result; run from `$REPO` unless noted. The
+**scratch-`HOME` harness** at the top of this file applies to G3.
+
+- **G1 — `max` is persisted via the env var, not `effortLevel`.** The tracked shared
+  `settings.json` sets `env.CLAUDE_CODE_EFFORT_LEVEL` to `max`, and does **not** rely on
+  `effortLevel` for max (which would downgrade to `xhigh`).
+  Verify: `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert d.get('env',{}).get('CLAUDE_CODE_EFFORT_LEVEL')=='max'; assert d.get('effortLevel')!='max'; print('ok')"`
+  → prints `ok` (and exits 0, proving the file is valid JSON). *(FD1, FD2)*
+
+- **G2 — Prior settings keys are preserved.** Adding the `env` block did not drop the
+  existing `theme` / `enabledPlugins`.
+  Verify: `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert d['theme']=='dark-ansi'; assert d['enabledPlugins']['rust-analyzer-lsp@claude-plugins-official'] is True; print('ok')"`
+  → `ok`. *(guards C6/A2)*
+
+- **G3 — The setting deploys to `~/.claude/` unchanged.** After the scratch-`HOME` harness:
+  `diff "$REPO/.claude/settings.json" "$TMPHOME/.claude/settings.json"` → no diff, and
+  `python3 -c "import json;print(json.load(open('$TMPHOME/.claude/settings.json'))['env']['CLAUDE_CODE_EFFORT_LEVEL'])"`
+  → `max`. *(FD2; C6 still holds with the new content)*
+
+- **G4 — `settings.json` stays tracked and whitelisted; no new `.claude/` surface.**
+  `git ls-files .claude/settings.json` is non-empty; `git check-ignore -v
+  .claude/settings.json` → **no output** (not ignored). `git ls-files .claude/` lists no
+  files beyond the curated set already required by A2. *(FD3, FD6)*
+
+- **G5 — Feature is confined to `settings.json` + docs.** No deploy/ignore/guard machinery
+  changed.
+  Verify: `grep -ni effort install.sh .gitignore .githooks/pre-commit` → **no output**
+  (the mechanism lives only in `settings.json`; the rationale only in `CLAUDE.md`). *(FD6)*
+
+- **G6 — `CLAUDE.md` documents the env-var rationale.** §"Claude Code config" names
+  `CLAUDE_CODE_EFFORT_LEVEL` and explains *why* the env var is used rather than the
+  `effortLevel` key (key cannot persist `max`).
+  Verify: `grep -n CLAUDE_CODE_EFFORT_LEVEL CLAUDE.md` is non-empty and the surrounding
+  text states the `effortLevel`-downgrades-`max` reason. *(FD4, FD5)*
+
+- **G7 — Mechanism re-verified against the installed CLI (build-time gate).** The doc-only
+  assumption behind FD1 was confirmed against the actually-installed Claude Code before the
+  feature was declared done — `CLAUDE_CODE_EFFORT_LEVEL=max` is the supported persistence
+  path and `effortLevel` does not accept `max`.
+  Verify: the final report cites the evidence (CLI help / settings reference / package
+  inspection). *(FD1)*
+
+- **G-REG — No regression in A–F.** Every prior criterion A1–F4 still passes after this
+  feature lands. Explicitly at risk and re-checked: **C6** (shared settings deploys and
+  matches repo — now with the `env` block; covered by G3), and **A2 / B1** (only the
+  curated set is tracked, `settings.local.json` excluded — a content-only edit to
+  `settings.json` must not introduce new tracked or stageable paths; covered by G4). All
+  other criteria are unaffected by editing an already-managed file.
+
+**Feature decision traceability** (re-verify at every checkpoint, per `SPEC.md`)
+
+| Feature SPEC decision | Proven by |
+|---|---|
+| FD1 Mechanism (env var, not `effortLevel`) | G1, G6, G7 |
+| FD2 Scope (shared, all machines) | G1, G3 |
+| FD3 Extends D6 (env block in shared settings) | G1, G4 |
+| FD4 Extends D8 (rationale in `CLAUDE.md`) | G6 |
+| FD5 Reaffirms D2 (truth flow) | G6 |
+| FD6 Reaffirms D5/D7/D9 (no machinery change) | G4, G5, G-REG |
