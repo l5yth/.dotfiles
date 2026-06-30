@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The repo root is a direct overlay of `$HOME`. A file at `./.zshrc` installs to `$HOME/.zshrc`; `./.config/i3/config` to `$HOME/.config/i3/config`; etc. Adding a new top-level entry means it will ship to every installed machine unless explicitly excluded in `install.sh`.
 
-Metadata that must NOT land in `$HOME`: `.git/`, `.gitignore`, `.gitmodules`, `.githooks/`, `README.md`, `LICENSE`, `install.sh`, `SPEC.md`, `ACCEPTANCE.md`, `CLAUDE.md`, `.github/`. The exclude list in `install.sh` enforces this — update it when adding new metadata. (`.claude/` **does** ship now — see §Claude Code config.)
+Metadata that must NOT land in `$HOME`: `.git/`, `.gitignore`, `.gitmodules`, `.githooks/`, `README.md`, `LICENSE`, `install.sh`, `SPEC.md`, `ACCEPTANCE.md`, the repo-root `CLAUDE.md`, `.github/`. The exclude list in `install.sh` enforces this — update it when adding new metadata. (`.claude/` **does** ship now — see §Claude Code config.)
 
 ## Install flow
 
@@ -21,6 +21,18 @@ Symlinks inside `.zsh/pure/` (`async -> async.zsh`, `prompt_pure_setup -> pure.z
 `.claude/` is a `$HOME` overlay like everything else: `.claude/commands/foo.md` installs to `~/.claude/commands/foo.md`. Edit config **here in the repo**, commit, and `install.sh` rsyncs it into `~/.claude/`; don't edit `~/.claude/` in place for tracked files — the next install overwrites them (the backup dir catches you if you forget).
 
 `~/.claude/` mixes config with runtime state and secrets, so `.gitignore` is **default-deny** for this tree: everything under `.claude/` is ignored except `commands/`, `skills/`, `agents/`, `hooks/`, `CLAUDE.md`, and `settings.json`. Never relax that without re-checking what gets exposed — `.credentials.json`, `history.jsonl`, `projects/`, `sessions/`, and the caches must never be committed. `settings.local.json` stays untracked **and** rsync-excluded (`install.sh`): it holds machine-local permission allowlists with absolute paths. Put per-machine settings there, shared settings in `settings.json`.
+
+**Global instructions.** `.claude/CLAUDE.md` ships as Claude Code's *user-level*
+instructions: once deployed it loads for **every** project on the machine, layered under
+each project's own `./CLAUDE.md` (the project file wins only on a *direct* conflict;
+otherwise both apply). Its presence is why `install.sh` excludes the repo-root project
+`CLAUDE.md` with a leading-slash-**anchored** pattern (`--exclude='/CLAUDE.md'`): an
+unanchored `CLAUDE.md` matches a bare basename at *any* depth, so it would also catch
+`.claude/CLAUDE.md` and silently stop the global file from ever deploying. The leading
+slash pins the exclude to the repo root. The sibling root-doc excludes (`LICENSE`,
+`README.md`, …) stay unanchored only because no `.claude/` counterpart collides with them
+yet — add the anchor if one ever does. Full decision record in `SPEC.md` / `ACCEPTANCE.md`
+§Feature: Persist global Claude standards.
 
 **Effort level.** `settings.json` pins `env.CLAUDE_CODE_EFFORT_LEVEL=max` so every machine defaults to max reasoning effort. It must be the env var, *not* the `effortLevel` key: that key's schema is `enum(low|medium|high|xhigh)` and silently downgrades `max` → `xhigh` (`.catch(void 0)` drops anything else), which is also why the `/effort max` command is session-only. The env var is the only path that persists literal `max`. JSON can't carry an inline comment, so this rationale lives here instead of next to the line — full decision record in `SPEC.md` / `ACCEPTANCE.md` §Feature: Persist max effort level. Trade-off: max uncaps token spend on every session and machine; lower that value or drop the `env` block on any machine that shouldn't pay it.
 

@@ -27,6 +27,9 @@ trap 'rmdir "$BACKUP" 2>/dev/null || true' EXIT
 # .claude/ now ships as a $HOME overlay (see CLAUDE.md). Excludes keep repo metadata,
 # process docs, and any machine-local/state/secret .claude paths out of $HOME; .gitignore
 # is the primary guard against committing them — these are deploy-time defense-in-depth.
+# The repo-root project file is anchored as '/CLAUDE.md': an unanchored pattern would also
+# match the shipped .claude/CLAUDE.md overlay (rsync matches a bare basename at any depth)
+# and silently block it from deploying. Full rationale in CLAUDE.md §"Claude Code config".
 rsync -avh \
 	--backup --backup-dir="$BACKUP" \
 	--exclude='.git/' \
@@ -34,7 +37,7 @@ rsync -avh \
 	--exclude='.githooks/' \
 	--exclude='.gitignore' \
 	--exclude='.gitmodules' \
-	--exclude='CLAUDE.md' \
+	--exclude='/CLAUDE.md' \
 	--exclude='LICENSE' \
 	--exclude='README.md' \
 	--exclude='SPEC.md' \

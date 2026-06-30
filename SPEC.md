@@ -126,3 +126,65 @@ re-verify them at each checkpoint so the build doesn't drift.
 6. **[confirmed] Reaffirms D5/D7/D9 (no deploy/ignore/guard change).** `settings.json` is
    already tracked, whitelisted, and deployed, so this feature touches **no** other
    machinery: `install.sh`, `.gitignore`, and `.githooks/pre-commit` are unchanged.
+
+---
+
+## Feature: Persist global Claude standards (`.claude/CLAUDE.md`)
+
+**Goal.** Persist a personal, machine-wide set of engineering standards as Claude Code's
+global user instructions (`~/.claude/CLAUDE.md`), deployed through the dotfiles flow so
+every machine and every project picks them up — instead of re-stating the same licensing,
+testing, documentation, structure, formatting, and git-workflow rules per project.
+
+**Core decision driven.** *Where* the standards live and *how universally* they apply: a
+single tracked `.claude/CLAUDE.md` that `install.sh` deploys to `~/.claude/CLAUDE.md`,
+applied to every project as a complementary default layered under each project's own
+`CLAUDE.md`.
+
+All six decisions below — referenced as GS1–GS6 in `ACCEPTANCE.md` — were confirmed
+2026-06-29. Per the discipline in §Key decisions above, re-verify them at each checkpoint
+so the build doesn't drift.
+
+1. **[confirmed] GS1 Location / mechanism.** Track `.claude/CLAUDE.md`; `install.sh`
+   deploys it to `~/.claude/CLAUDE.md`, Claude Code's user-level (global) instructions
+   loaded for every project on the machine alongside each project's own `./CLAUDE.md`.
+   This realizes the `.claude/CLAUDE.md` slot reserved in D4 but left empty since the
+   fold-in. *Extends D1/D4; uses the existing overlay + deploy machinery unchanged except
+   for GS4.*
+
+2. **[confirmed] GS2 Precedence model.** The standards are complementary defaults that
+   apply to every project at once. A project's own `CLAUDE.md` overrides one of these
+   rules **only on a direct conflict** (e.g. this repo's "There is no test suite" vs. the
+   global "100% line-coverage floor"); with no conflict, both files' rules apply together.
+   This is Claude Code's native `CLAUDE.md` layering — the feature relies on it and states
+   it in a short preamble at the top of the file. *Adds no new machinery.*
+
+3. **[confirmed] GS3 Content fidelity.** Store the standards **verbatim** — the exact
+   section headings and wording supplied — prepended with the one-/two-line precedence
+   preamble from GS2. Keep the SPDX `<year>`/`<holder>`/`<ID>` placeholders unresolved: a
+   global file spans projects with different licenses and years, so each project fills them
+   in, not this file. Fix only obvious typos; no rewording or restructuring.
+
+4. **[confirmed] GS4 Extends D7 (install.sh).** `install.sh` excludes the repo-root project
+   file with an unanchored `--exclude='CLAUDE.md'`, which rsync matches at any depth and
+   which therefore would also block `.claude/CLAUDE.md` from deploying (verified empirically
+   2026-06-29: with the unanchored rule the overlay file does not land; with
+   `--exclude='/CLAUDE.md'` it does, and the root file stays excluded). Anchor that one line
+   to `--exclude='/CLAUDE.md'`. The sibling root-file excludes (`LICENSE`, `README.md`,
+   `SPEC.md`, `ACCEPTANCE.md`, `install.sh`) are left unanchored — no `.claude/` counterpart
+   exists to collide with them today. *Amends D7's concrete exclude list; preserves both of
+   D7's intents (exclude the root project file; deploy the tracked `.claude/` set).*
+
+5. **[confirmed] GS5 Extends D8 (doc sync).** Update repo-root `CLAUDE.md` §"Claude Code
+   config": note that `.claude/CLAUDE.md` now ships as global user instructions, and record
+   the non-obvious rationale — once a `.claude/CLAUDE.md` exists, the root exclude must stay
+   anchored (`/CLAUDE.md`) or the overlay file silently stops deploying. Per the §Inline
+   documentation discipline this "why" lives in `CLAUDE.md` because a one-word rsync pattern
+   can't host the explanation. *Extends D8.*
+
+6. **[confirmed] GS6 Reaffirms D5/D9/E2 (no ignore/guard/scope change).** `.gitignore`
+   already whitelists `!/.claude/CLAUDE.md` (D5), so no ignore change. The pre-commit
+   secrets guard (D9) is unaffected — a global instructions file is curated config, not
+   credentials/state. `.claude/CLAUDE.md` is not a command/agent/skill, so the E2
+   command-set boundary (`bugfix`/`feature`/`kickoff`, no agents/skills) is untouched. No
+   change to `.gitignore`, `.githooks/pre-commit`, or the tracked command set.

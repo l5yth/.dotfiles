@@ -228,3 +228,78 @@ each criterion is a command plus its expected result; run from `$REPO` unless no
 | FD4 Extends D8 (rationale in `CLAUDE.md`) | G6 |
 | FD5 Reaffirms D2 (truth flow) | G6 |
 | FD6 Reaffirms D5/D7/D9 (no machinery change) | G4, G5, G-REG |
+
+---
+
+## Feature: Persist global Claude standards (`.claude/CLAUDE.md`)  (Feature SPEC GS1–GS6)
+
+Verifies the feature appended to `SPEC.md` under the same heading. Same idiom as A–G: each
+criterion is a command plus its expected result; run from `$REPO` unless noted. The
+**scratch-`HOME` harness** at the top of this file applies to H3/H4.
+
+- **H1 — The global standards file is tracked and whitelisted.** `git ls-files
+  .claude/CLAUDE.md` is non-empty, and `git check-ignore -v .claude/CLAUDE.md` → **no
+  output** (not ignored, despite the default-deny `/.claude/*` rule).
+  Verify: both commands as stated. *(GS1; guards D5)*
+
+- **H2 — Content is the verbatim standards plus a precedence preamble; placeholders kept.**
+  `.claude/CLAUDE.md` carries the title `# l5y standards (all projects)`, exactly the six
+  section headings (`## Licensing (REUSE-compliant)`, `## Tests`, `## Documentation`,
+  `## Structure`, `## Formatting and lint`, `## Git workflow`), a preamble stating a
+  project's own `CLAUDE.md` wins only on a direct conflict, and the **unresolved** SPDX
+  placeholders.
+  Verify: `grep -c '^## ' .claude/CLAUDE.md` → `6`; `grep -qF 'l5y standards (all projects)'
+  .claude/CLAUDE.md`; `grep -qi 'conflict' .claude/CLAUDE.md` (the preamble); and both
+  `grep -qF 'SPDX-FileCopyrightText: <year> <holder>' .claude/CLAUDE.md` and
+  `grep -qF 'SPDX-License-Identifier: <ID>' .claude/CLAUDE.md` succeed (exit 0). *(GS2, GS3)*
+
+- **H3 — The file deploys to `~/.claude/` unchanged.** After the scratch-`HOME` harness:
+  `test -f "$TMPHOME/.claude/CLAUDE.md"` and `diff "$REPO/.claude/CLAUDE.md"
+  "$TMPHOME/.claude/CLAUDE.md"` → no diff. This proves the GS4 anchor fix actually lets the
+  overlay file land. *(GS1, GS4)*
+
+- **H4 — The repo-root project `CLAUDE.md` still does not deploy.** After the harness,
+  `test ! -e "$TMPHOME/CLAUDE.md"` succeeds — the anchored exclude still excludes the root
+  file while shipping the overlay one. *(GS4; guards the C4-style "repo docs don't ship")*
+
+- **H5 — `install.sh` anchors only the root `CLAUDE.md` exclude.** The exclude list
+  contains the anchored rule and not the unanchored one.
+  Verify: `grep -qF "exclude='/CLAUDE.md'" install.sh` succeeds; `grep -F
+  "exclude='CLAUDE.md'" install.sh` prints **nothing** (exit 1). The sibling root-file
+  excludes stay present and unanchored (`grep -qF "exclude='LICENSE'" install.sh`
+  succeeds). *(GS4)*
+
+- **H6 — `CLAUDE.md` documents the overlay file and the anchoring rationale.** Repo-root
+  `CLAUDE.md` §"Claude Code config" names `.claude/CLAUDE.md` as shipped global instructions
+  and explains why the `install.sh` exclude must stay anchored (`/CLAUDE.md`) or the overlay
+  file stops deploying.
+  Verify: `grep -n '\.claude/CLAUDE\.md' CLAUDE.md` is non-empty, and the surrounding
+  §"Claude Code config" text states the anchored-exclude reason (e.g. `grep -ni anchor
+  CLAUDE.md` is non-empty). *(GS5)*
+
+- **H-REG — No regression in A–G.** Every prior criterion A1–F4 and G1–G-REG still passes.
+  Explicitly at risk and re-checked:
+  - **A2 / E2** (only the curated set is tracked; commands are exactly the three, no
+    agents/skills): adding `.claude/CLAUDE.md` is permitted by A2's own allowed list and is
+    not under `commands/`. Re-verify `git ls-files .claude/` shows nothing outside
+    `commands/`, `skills/`, `agents/`, `hooks/`, `.claude/CLAUDE.md`, `.claude/settings.json`;
+    `git ls-files .claude/commands/` is exactly `bugfix.md`, `feature.md`, `kickoff.md`; and
+    `git ls-files .claude/agents/ .claude/skills/` is empty.
+  - **C2 / C6 / F1** (other tracked files still deploy): the anchored exclude must not stop
+    `.zshrc`, `.claude/settings.json`, or `.claude/commands/kickoff.md` from landing — re-run
+    C2/C6/F1; H3 additionally confirms the new file lands.
+  - **C4** (`SPEC.md`/`ACCEPTANCE.md` never deploy): unaffected (separate excludes); H4
+    additionally confirms the root `CLAUDE.md` still doesn't ship.
+  - **D2** (doc ↔ config agree): the new `install.sh` exclude and the `CLAUDE.md` §Layout /
+    §"Claude Code config" text stay consistent — covered by H5 + H6.
+
+**Feature decision traceability** (re-verify at every checkpoint, per `SPEC.md`)
+
+| Feature SPEC decision | Proven by |
+|---|---|
+| GS1 Location / mechanism | H1, H3 |
+| GS2 Precedence model | H2 |
+| GS3 Content fidelity (verbatim + preamble, placeholders kept) | H2 |
+| GS4 install.sh anchor (`/CLAUDE.md`) | H3, H4, H5 |
+| GS5 Doc sync | H6 |
+| GS6 No ignore/guard/scope change | H1, H-REG |
