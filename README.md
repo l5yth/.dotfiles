@@ -5,7 +5,7 @@ Arch Linux dotfiles for a Dracula-themed i3 desktop.
 ## Base
 
 ```bash
-sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 dex ttf-dejavu man-pages man-db dmenu polkit xdg-utils nodejs npm rustup python git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain pass pinentry ruby btop terminator cronie zsh-autosuggestions nmap ufw zsh-completions
+sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 dex man-pages man-db dmenu polkit xdg-utils rustup python git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain pass pinentry ruby btop terminator cronie zsh-autosuggestions nmap ufw zsh-completions
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo systemctl enable --now dhcpcd iwd cronie ufw
@@ -30,7 +30,7 @@ sudo pacman -S amd-ucode     # AMD only
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 nvm install lts/krypton
 npm install --global yarn lerna npm serve pm2
-sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl
+sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl nerd-fonts ttf-dejavu ttf-fira-code noto-fonts noto-fonts-emoji
 rustup default stable
 cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
 pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service-git
@@ -39,7 +39,7 @@ pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service-git
 ## Desktop
 
 ```bash
-sudo pacman -S syncthing hplip cups cups-pdf brightnessctl autorandr bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger ttf-fira-code noto-fonts noto-fonts-emoji papirus-icon-theme scrot okular shotwell caja engrampa meld code obsidian signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge protonmail-bridge-core eom libreoffice-fresh vlc pavucontrol pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk
+sudo pacman -S syncthing hplip cups cups-pdf brightnessctl autorandr bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger papirus-icon-theme scrot okular shotwell caja engrampa meld code obsidian signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge protonmail-bridge-core eom libreoffice-fresh vlc pavucontrol pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk mate-utils
 sudo systemctl enable --now bluetooth syncthing@$USER
 systemctl --user enable --now pipewire wireplumber
 pikaur -S i3lock-color xidlehook xrandr-invert-colors brave-bin enpass-bin sublime-text-4 pinta
