@@ -29,11 +29,18 @@ sudo pacman -S amd-ucode     # AMD only
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 nvm install lts/krypton
-npm install --global yarn lerna npm serve pm2
+nvm install-latest-npm
+npm install --global yarn serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl nerd-fonts ttf-dejavu ttf-fira-code noto-fonts noto-fonts-emoji
 rustup default stable
 cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
-pikaur -S claude-code pipes.sh lsu-git psn-git pass-secret-service-git
+pikaur -S pipes.sh lsu-git psn-git pass-secret-service-git
+```
+
+## Sandbox only
+
+```bash
+pikaur -S claude-code
 ```
 
 ## Desktop
