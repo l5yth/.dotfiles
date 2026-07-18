@@ -188,3 +188,66 @@ so the build doesn't drift.
    credentials/state. `.claude/CLAUDE.md` is not a command/agent/skill, so the E2
    command-set boundary (`bugfix`/`feature`/`kickoff`, no agents/skills) is untouched. No
    change to `.gitignore`, `.githooks/pre-commit`, or the tracked command set.
+
+---
+
+## Feature: Replace fasd with zoxide
+
+**Goal.** Replace the abandoned `fasd` directory-frecency tool with the actively maintained
+`zoxide` (Rust) as the shell's jump command, deployed through the same dotfiles flow, while
+preserving the existing `j` muscle memory — instead of carrying a dead dependency and a
+95-line checked-in init cache (`.fasd-init-zsh`).
+
+**Core decision driven.** The *usage surface* of the replacement: which command name(s) the
+jump verb is exposed under, whether the default action is a straight jump or an interactive
+picker, and what happens to fasd's file-frecency commands that zoxide has no equivalent for.
+
+All six decisions below — referenced as ZX1–ZX6 in `ACCEPTANCE.md` — were confirmed
+2026-07-18. Per the discipline in §Key decisions above, re-verify them at each checkpoint so
+the build doesn't drift.
+
+1. **[confirmed] ZX1 Mechanism.** Replace `fasd` with `zoxide` as the frecency directory
+   jumper. `zoxide` is in Arch's official `extra` repo, so it stays in the plain `pacman -S`
+   list — no AUR/`pikaur`. The package name is swapped in **both** the README `pacman` block
+   (`README.md`) and the mirrored CI package list (`.github/workflows/ci.yml`) in the same
+   commit, per the README↔CI coupling (`CLAUDE.md` §"README ↔ CI coupling"). *New domain
+   (shell tooling); no prior SPEC decision governs it.*
+
+2. **[confirmed] ZX2 Command surface (`--cmd j`).** Initialize with
+   `zoxide init zsh --cmd j`, exposing `j <query>` (jump to the top frecency match,
+   non-interactive) and `ji <query>` (fzf picker among matches). This preserves the existing
+   `alias j` muscle memory; jumping is fast-by-default and interactive only on `ji` (the heir
+   of the old always-interactive `j = fasd_cd -i`). fasd's `z`/`zz`/`d` directory aliases are
+   **not** recreated — `j`/`ji` subsume them. *The core decision; interactively confirmed over
+   stock `z`/`zi` and over a `z` + `alias j=zi` hybrid.*
+
+3. **[confirmed] ZX3 Drop file-frecency commands.** fasd's file/any-type commands — `f`, `a`,
+   `s`, `sf`, `sd` — have no zoxide equivalent (zoxide indexes directories only) and are
+   removed with fasd. Feature scope is directory-jumping only. Ad-hoc file and history finding
+   is already served by the fzf keybindings sourced from `~/.fzf.zsh` (Ctrl-T files, Ctrl-R
+   history, Alt-C cd), so no shell shims are added.
+
+4. **[confirmed] ZX4 Inline init; retire the cached-init file.** Replace the `.zshrc` fasd
+   bootstrap (which cached `fasd --init` output to `~/.fasd-init-zsh`, regenerating when the
+   binary out-dated the cache) with a single guarded `eval "$(zoxide init zsh --cmd j)"`.
+   zoxide's init is a fast single-binary call, so the cache mechanism is unnecessary. Delete
+   the tracked `.fasd-init-zsh`. Because `install.sh` rsync is additive (no `--delete`;
+   D7/C3), the stale `~/.fasd-init-zsh` and `~/.fasd` persist in `$HOME` on already-installed
+   machines — they are inert once the `.zshrc` block is gone, and cleanup is a documented
+   manual `rm`, not repo machinery. *Consistent with and relies on D7/C3.*
+
+5. **[confirmed] ZX5 No frecency migration (start fresh).** The accumulated `~/.fasd`
+   database is machine-local runtime state (gitignored) and is not migrated; zoxide rebuilds
+   ranks from `cd` activity going forward. The z-format import escape hatch
+   (`zoxide import --from=z ~/.fasd`, valid because fasd's DB is z-format-compatible) is noted
+   only in the final report for anyone who wants it — it is a per-machine runtime step and is
+   **not** added to any tracked file.
+
+6. **[confirmed] ZX6 Ignore + doc footprint.** Remove the `.fasd` line from `.gitignore` (its
+   DB no longer exists; zoxide's DB lives under `~/.local/share/zoxide/`, which is not part of
+   the `$HOME` overlay — `.local/` is untracked — so no replacement ignore entry is needed).
+   The default-deny `.claude/*` whitelist (D5) is left untouched. Add the inline *why* comment
+   to the new `.zshrc` zoxide line per `CLAUDE.md` §"Inline documentation in configs" (the
+   non-obvious `--cmd j` choice and the dirs-only successor note). No `CLAUDE.md` change is
+   required — it never referenced fasd. *Consistent with D5; touches only the unrelated
+   `.fasd` ignore line.*

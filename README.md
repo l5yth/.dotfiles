@@ -5,7 +5,7 @@ Arch Linux dotfiles for a Dracula-themed i3 desktop.
 ## Base
 
 ```bash
-sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 dex man-pages man-db dmenu polkit xdg-utils rustup python git rsync fasd fzf tmux zsh-syntax-highlighting openssh keychain pass pinentry ruby btop terminator cronie zsh-autosuggestions nmap ufw zsh-completions
+sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 dex man-pages man-db dmenu polkit xdg-utils rustup python git rsync zoxide fzf tmux zsh-syntax-highlighting openssh keychain pass pinentry ruby btop terminator cronie zsh-autosuggestions nmap ufw zsh-completions
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo systemctl enable --now dhcpcd iwd cronie ufw
