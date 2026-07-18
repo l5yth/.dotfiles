@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
-# Apply a Dracula-inspired status theme to tmux.
+# Dracula tmux status theme — vendored, self-contained, no plugin manager.
+#
+# This is the sei40kr/tmux-airline-dracula theme, inlined here as plain tmux
+# directives after that repo was archived (read-only) in 2018; .tmux.conf runs
+# it via run-shell. There is no TPM plugin or external clone to break.
+#
+# The pane/message/window segments below use the modern tmux >= 2.9 `-style`
+# form. Do NOT reintroduce the pre-2.9 split options (pane-border-fg,
+# message-bg, message-command-fg, window-status-*-attr, …): tmux removed them
+# in 2.9 and they now error as "invalid option" on current tmux. A 2018-era
+# reset did exactly that and broke the bar (af2b0b7, see #49). `status-bg`
+# below is intentional — a still-valid compatibility alias, not a removed one.
 
 main() {
 
