@@ -306,6 +306,89 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
 
 ---
 
+## Fix: Dead-upstream theming + `pass-secret-service` refresh (#49)
+
+Regression guards for the #49 bugfix session. Same idiom as A–H: each criterion is a
+command plus its expected result; run from `$REPO` unless noted. They lock out three
+defect classes so they cannot quietly return:
+
+1. the tmux theme regressing to the pre-2.9 options a 2018 reset (`af2b0b7`) reintroduced,
+   which error as `invalid option` on tmux ≥ 2.9;
+2. the vendored Dracula vim theme carrying the obsolete `after/` overrides that call the
+   now-removed `dracula#should_abort()` (`E117` on every matching file);
+3. the README / CI installing the wrong `pass-secret-service` variant.
+
+Guards that must **fail against the pre-fix tree** (proving they bite): R1 matches the
+`af2b0b7` tmux version; R4 fails against the old `.vim` (had `after/` + `should_abort`);
+R7 fails against the old README/CI (pinned `-git`).
+
+### tmux theme  (`.tmux/airline-dracula.tmux`, vendored self-contained)
+
+- **R1 — No removed pre-2.9 tmux options in the directives.** Scanning only the `tmux set`
+  lines (not the header comment, which lists them as a do-not-use set) finds none of the
+  fg/bg/attr options tmux removed in 2.9.
+  Verify: `grep -E '^[[:space:]]*tmux set' .tmux/airline-dracula.tmux | grep -Eq -- '(pane-(active-)?border|message(-command)?|window-status[a-z-]*)-(fg|bg|attr)'`
+  → **exit 1** (no match). The same pipe over `git show af2b0b7:.tmux/airline-dracula.tmux`
+  → **exit 0** (bites the 2018 regression). `status-bg` is intentionally retained (a
+  still-valid alias) and is deliberately outside the pattern.
+
+- **R2 — Theme applies cleanly on the installed tmux.** Loaded the way `.tmux.conf` runs it
+  (via `run-shell`, i.e. with `$TMUX` set) on a throwaway `-L` socket, the script exits 0
+  with empty stderr and sets the themed bar.
+  Verify (behavioral): create a server on a private socket, run the script with `$TMUX`
+  pointed at it → `$?` = 0, empty stderr, and `show-options -g status-left` contains ` #I `.
+
+- **R3 — No plugin-manager / clone dependency.** `.tmux.conf` sources only the local vendored
+  script; there is no TPM, `@plugin`, or remote clone.
+  Verify: `grep -qE '@plugin|/tpm|clone|githubusercontent|raw\.github' .tmux.conf` → **exit 1**.
+
+### Dracula vim  (re-vendored from `dracula/vim` @ `4f06875`)
+
+- **R4 — No obsolete `after/` overrides remain.** The per-language links moved into
+  `colors/dracula_base.vim`; keeping the old files throws `E117: Unknown function:
+  dracula#should_abort`.
+  Verify: `git ls-files '.vim/after/*'` → empty; `grep -rl should_abort .vim` → no output.
+
+- **R5 — The colorscheme loads with no error on the installed vim.**
+  Verify (behavioral): with the repo `.vim` as an isolated `$HOME`,
+  `vim -u NONE -N -es -c 'let v:errmsg="" ' -c 'silent! colorscheme dracula' … -c 'qa!'`
+  yields `g:colors_name == 'dracula'` and empty `v:errmsg`; opening probe files for
+  `py rs rb js ts json css html sh lua vim yaml md` with `syntax on` keeps `v:errmsg` empty.
+
+- **R6 — Loader + base structure present.** `colors/dracula.vim` is the thin loader and
+  `colors/dracula_base.vim` carries the links.
+  Verify: `grep -q 'runtime colors/dracula_base.vim' .vim/colors/dracula.vim` and
+  `[ "$(grep -c 'hi! link' .vim/colors/dracula_base.vim)" -gt 100 ]` (currently 626).
+
+### `pass-secret-service` package  (README ↔ CI)
+
+- **R7 — README and CI install the plain (non-git) package and agree.** The DH-padding fix
+  (grimsteel/pass-secret-service#24) shipped in the v0.7.1 release (commit `a1903a9`), so both
+  the README and the CI README-walk install `pass-secret-service`, not `-git`.
+  Verify: `grep -q 'pass-secret-service-git' README.md .github/workflows/ci.yml` → **exit 1**;
+  `grep -q pass-secret-service README.md && grep -q pass-secret-service .github/workflows/ci.yml`
+  → **exit 0**. *(§README↔CI coupling)* The `CLAUDE.md` §Secret-service invariant note records
+  that the fix now ships in a tagged release — revert to `-git` only if a future fix again
+  lands on `master` ahead of a release.
+
+### install migration
+
+- **R8 — install.sh migrates away the stale vim `after/` files.** `bash -n install.sh` exits
+  0. After a scratch-`HOME` install that pre-seeded a stale dracula
+  `~/.vim/after/syntax/python.vim` **and** a user-added `~/.vim/after/syntax/mine.vim`, the
+  dracula file is removed and the user file survives; `.claude/` runtime state pre-seeded in
+  the same HOME is untouched (additive, no `--delete`; guards C3).
+  Verify (behavioral): the scratch-`HOME` harness — stale dracula `after/` gone, user
+  `after/` file kept, new `colors/dracula_base.vim` + `alucard.vim` deployed, `.zshrc` still
+  lands, `.claude/projects/old` + `.credentials.json` survive.
+
+**No regression in A–H.** These changes touch config/theme files, README, CI, and add a
+scoped `$HOME` cleanup in `install.sh`; the `.claude` fold-in, effort, and global-standards
+criteria (A1–H-REG) are unaffected. The C-series is re-checked via R8's scratch-`HOME`
+harness (F1 `.zshrc`, C3 additive state both still hold).
+
+---
+
 ## Feature: Replace fasd with zoxide  (Feature SPEC ZX1–ZX6)
 
 Verifies the feature appended to `SPEC.md` under the same heading. Same idiom as A–H: each

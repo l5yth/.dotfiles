@@ -34,7 +34,7 @@ npm install --global yarn serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl nerd-fonts ttf-dejavu ttf-fira-code noto-fonts noto-fonts-emoji
 rustup default stable
 cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
-pikaur -S pipes.sh lsu-git psn-git pass-secret-service-git
+pikaur -S pipes.sh lsu-git psn-git pass-secret-service
 ```
 
 ## Sandbox only
