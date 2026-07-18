@@ -303,3 +303,103 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
 | GS4 install.sh anchor (`/CLAUDE.md`) | H3, H4, H5 |
 | GS5 Doc sync | H6 |
 | GS6 No ignore/guard/scope change | H1, H-REG |
+
+---
+
+## Feature: Replace fasd with zoxide  (Feature SPEC ZX1–ZX6)
+
+Verifies the feature appended to `SPEC.md` under the same heading. Same idiom as A–H: each
+criterion is a command plus its expected result; run from `$REPO` unless noted. The
+**scratch-`HOME` harness** at the top of this file applies to I8.
+
+- **I1 — README swaps the package; no `fasd` left in it.** The README `pacman -S` block
+  installs `zoxide` and no longer `fasd`, and `zoxide` stays in the plain `pacman` list (no
+  new AUR/`pikaur` block was introduced for it).
+  Verify: `grep -F 'pacman -S' README.md | grep -qw zoxide` succeeds; `grep -qw fasd
+  README.md` → **exit 1** (nothing). *(ZX1)*
+
+- **I2 — CI package list swaps in lockstep, and the workflow still parses.** The mirrored
+  list in `.github/workflows/ci.yml` gains `zoxide` and drops `fasd`, satisfying the
+  README↔CI coupling (prior criterion D3).
+  Verify: `grep -qw zoxide .github/workflows/ci.yml` succeeds; `grep -qw fasd
+  .github/workflows/ci.yml` → **exit 1**;
+  `python3 -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` exits 0. *(ZX1;
+  D3/F2 coupling)*
+
+- **I3 — `.zshrc` init surface is zoxide `--cmd j`, single-eval, commented, no fasd.** The
+  fasd bootstrap is gone; the block is one guarded `eval "$(zoxide init zsh --cmd j)"` with a
+  short *why* comment, and there is no cache-file dance.
+  Verify: `grep -qF 'zoxide init zsh --cmd j' .zshrc` succeeds; no fasd *code* remains —
+  `grep -qiE 'fasd_cd|fasd_cache|command -v fasd|fasd --init' .zshrc` → **exit 1** (the
+  migration comment may name `fasd` for documentation; only live invocations are forbidden);
+  `grep -c 'zoxide init' .zshrc` → `1` (single init, no regen branch); a `#` comment appears
+  immediately above the guarded `zoxide init` block (above the `if command -v zoxide` guard,
+  per §Inline documentation's "comment above the block" idiom — read it to confirm it explains
+  the `--cmd j`/dirs-only rationale). *(ZX2, ZX4, ZX6-comment)*
+
+- **I4 — The cached-init file is deleted; file-frecency commands are gone with it.**
+  `.fasd-init-zsh` — the sole definer of `a`/`s`/`sd`/`sf`/`d`/`f` — is removed from the repo.
+  Verify: `test ! -e .fasd-init-zsh` succeeds; `git ls-files .fasd-init-zsh` prints
+  **nothing**; `git grep -nE "^alias (a|s|sd|sf|d|f)=" -- .zshrc` prints **nothing** (no
+  file-command aliases were relocated into `.zshrc`). *(ZX3, ZX4)*
+
+- **I5 — `.gitignore` retires the `.fasd` entry; the `.claude/*` whitelist is intact.** The
+  bare `.fasd` line is gone (its DB no longer exists), and no replacement entry was needed
+  (zoxide's DB lives under untracked `~/.local/share/zoxide/`). The default-deny `.claude/`
+  whitelist is byte-for-byte unchanged.
+  Verify: `grep -qxF '.fasd' .gitignore` → **exit 1** (line removed); `grep -qF '/.claude/*'
+  .gitignore` and `grep -qF '!/.claude/commands/' .gitignore` both succeed (whitelist
+  untouched — guards prior A1/A3). *(ZX6)*
+
+- **I6 — No frecency migration is wired into any shipped/tracked config.** The
+  `zoxide import` escape hatch (ZX5) lives only in prose (`SPEC.md`/`ACCEPTANCE.md`), never in
+  deployed config.
+  Verify: `grep -rn 'zoxide import' .zshrc install.sh README.md .github/workflows/ci.yml`
+  prints **nothing**. *(ZX5)*
+
+- **I7 — Behavioral gate: `--cmd j` defines `j` and `ji`, not `z` (cited in final report).**
+  On a machine with `zoxide` installed, the emitted init defines both jump commands under the
+  `j` name and does **not** define a bare `z`; `.zshrc` stays syntactically valid.
+  Verify: `zsh -c 'autoload -Uz add-zsh-hook; eval "$(zoxide init zsh --cmd j)"; whence -w j;
+  whence -w ji; whence -w z'` → `j` and `ji` report `function`, `z` reports `none`; and
+  `bash -n .zshrc` exits 0. If `zoxide` is not yet installed on the build machine, the final
+  report says so and records that the gate was run against the emitted init at first install.
+  *(ZX2)*
+
+- **I8 — Deploy lands the new init and is additive over the retired files.** The zoxide line
+  deploys, and pre-existing `~/.fasd-init-zsh` / `~/.fasd` are **not** deleted (rsync uses no
+  `--delete`; the stale files are inert, per ZX4).
+  Verify:
+  ```bash
+  TMPHOME=$(mktemp -d)
+  printf 'x\n' > "$TMPHOME/.fasd-init-zsh"; printf '/tmp|1|1\n' > "$TMPHOME/.fasd"
+  HOME="$TMPHOME" "$REPO/install.sh" >/dev/null
+  grep -qF 'zoxide init zsh --cmd j' "$TMPHOME/.zshrc"          # new init landed
+  test -f "$TMPHOME/.fasd-init-zsh" && test -f "$TMPHOME/.fasd" # stale files survive
+  ```
+  All three checks pass. *(ZX4; mirrors C3's additive-deploy guarantee)*
+
+- **I-REG — No regression in A–H.** Every prior criterion A1–F4, G1–G-REG, and H1–H-REG still
+  passes after this feature lands. Explicitly at risk and re-checked:
+  - **D3** (README↔CI coupling): README and `ci.yml` changed together — covered by I1 + I2.
+  - **F2** (ci.yml parses): re-checked after the package swap — covered by I2.
+  - **F1 / C2** (unrelated tracked files still deploy): `.zshrc` was edited and must still land
+    and be valid — covered by I3 (`bash -n` in I7) and I8 (it deploys).
+  - **A1 / A3** (default-deny `.claude/` whitelist intact): the `.gitignore` edit touches only
+    the unrelated `.fasd` line — covered by I5.
+  - **A2 / B1** (only the curated set is tracked; nothing new stageable): this feature *removes*
+    a tracked file (`.fasd-init-zsh`) and adds no new tracked paths under `.claude/`; re-run
+    A2/B1 to confirm no new tracked or stageable paths appear.
+  All other criteria are unaffected (they concern the `.claude/` overlay, which this feature
+  does not touch).
+
+**Feature decision traceability** (re-verify at every checkpoint, per `SPEC.md`)
+
+| Feature SPEC decision | Proven by |
+|---|---|
+| ZX1 Mechanism (pkg swap, README + CI) | I1, I2 |
+| ZX2 Command surface (`--cmd j` → `j`/`ji`) | I3, I7 |
+| ZX3 Drop file-frecency commands | I4 |
+| ZX4 Inline init; retire cached-init file | I3, I4, I8 |
+| ZX5 No frecency migration | I6 |
+| ZX6 Ignore + doc footprint | I5, I3 |

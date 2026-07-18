@@ -14,15 +14,12 @@ alias ls="ls --color=auto"
 alias ll="ls --color=auto -lshaF"
 alias grep="grep --color=auto"
 
-# fasd :)
-if command -v fasd >/dev/null 2>&1; then
-  fasd_cache="$HOME/.fasd-init-zsh"
-  if [ "$(command -v fasd)" -nt "$fasd_cache" -o ! -s "$fasd_cache" ]; then
-    fasd --init auto posix-alias zsh-hook zsh-ccomp zsh-ccomp-install zsh-wcomp zsh-wcomp-install >| "$fasd_cache"
-  fi
-  source "$fasd_cache"
-  unset fasd_cache
-  alias j="fasd_cd -i"
+# zoxide: frecency dir-jump, the maintained successor to the abandoned fasd. `--cmd j`
+# preserves the old `j` habit — `j <q>` cd's to the top-ranked match, `ji <q>` opens an
+# fzf picker (needs the fzf binary). Directories only: fasd's file commands (f/a/s/sf/sd)
+# are gone — use fzf's Ctrl-T (files) / Ctrl-R (history) / Alt-C (cd) instead.
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd j)"
 fi
 
 # keychain starts an ssh-agent on first login and reuses $SSH_AUTH_SOCK
