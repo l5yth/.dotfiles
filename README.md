@@ -27,7 +27,7 @@ sudo pacman -S amd-ucode     # AMD only
 ## Extras
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
 nvm install lts/krypton
 nvm install-latest-npm
 npm install --global yarn serve pm2
