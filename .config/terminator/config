@@ -6,7 +6,7 @@
   [[default]]
     background_color = "#282a36"
     background_image = None
-    font = Fira Code Medium 12
+    font = FiraCode Nerd Font Mono Medium 12
     foreground_color = "#f8f8f2"
     scrollbar_position = hidden
     scrollback_lines = 9999
