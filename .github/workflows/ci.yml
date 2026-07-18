@@ -91,7 +91,7 @@ jobs:
             git clone https://aur.archlinux.org/pikaur.git
             cd pikaur
             makepkg -fsri --noconfirm
-            pikaur -S --noconfirm --needed claude-code pipes.sh lsu-git psn-git pass-secret-service-git
+            pikaur -S --noconfirm --needed claude-code pipes.sh lsu-git psn-git pass-secret-service
           '
 
       - name: Desktop — official packages
