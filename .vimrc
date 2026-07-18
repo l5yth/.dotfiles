@@ -98,5 +98,13 @@ endif
 set background=dark
 color dracula
 
+" Airline status bar: render Powerline glyphs (segment separators, branch,
+" line/col markers) instead of airline's ☰/℅/㏑ text fallbacks, and match the
+" Dracula palette. Needs a Powerline-capable terminal font — Fira Code already
+" carries the separators; a Nerd Font additionally provides the column glyph
+" (U+E0A3) and file-type icons.
+let g:airline_powerline_fonts = 1
+let g:airline_theme = 'dracula'
+
 set laststatus=2
 
