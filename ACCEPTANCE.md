@@ -550,6 +550,21 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
   Verify: the final report cites the evidence (settings schema / `claude --help`
   `--permission-mode` choices). *(PB1, PB2)*
 
+- **J9 — The sandbox premise is cross-linked between `README.md` and `CLAUDE.md`, both
+  ways.** PB2's premise is asserted in two files and must not drift: `README.md` §"Sandbox
+  only" scopes the `claude-code` install to disposable machines *and* names the setting that
+  makes it necessary, pointing at `CLAUDE.md` for the opt-out; `CLAUDE.md` §"Claude Code
+  config" names that README section back and states the two must move together.
+  Verify (all four must hold):
+  ```bash
+  grep -q '^## Sandbox only' README.md                         # section still exists
+  grep -A6 '^## Sandbox only' README.md | grep -q 'bypassPermissions'   # names the setting
+  grep -A6 '^## Sandbox only' README.md | grep -q 'CLAUDE.md'  # points at the rationale
+  grep -q 'Sandbox only' CLAUDE.md                             # and is named back
+  ```
+  Each exits 0. Renaming or deleting either side fails this criterion — which is the point:
+  the premise may be revised, but not silently on one side only. *(PB2, PB5)*
+
 - **J-REG — No regression in A–I.** Every prior criterion A1–F4, G1–G-REG, H1–H-REG, R1–R8 and I1–I-REG
   still passes after this feature lands. Explicitly at risk and re-checked: **C6** (shared
   settings deploys and matches repo — now with the `permissions` block; covered by J3), and
@@ -565,8 +580,8 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
 | Feature SPEC decision | Proven by |
 |---|---|
 | PB1 Mechanism (`defaultMode: bypassPermissions`) | J1, J3, J8 |
-| PB2 Scope (shared, all machines) + sandbox premise | J3, J7, J8 |
+| PB2 Scope (shared, all machines) + sandbox premise | J3, J7, J8, J9 |
 | PB3 Extends D6 (permissions block in shared settings) | J1, J5 |
 | PB4 Acknowledgement dialog retained (key left unset) | J2, J7 |
-| PB5 Extends D8 (rationale in `CLAUDE.md`) | J7 |
+| PB5 Extends D8 (rationale in `CLAUDE.md`, README cross-link) | J7, J9 |
 | PB6 No deploy/ignore/guard change | J5, J6, J-REG |
