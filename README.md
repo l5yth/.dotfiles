@@ -39,12 +39,6 @@ pikaur -S pipes.sh lsu-git psn-git pass-secret-service
 
 ## Sandbox only
 
-Disposable machines only. These dotfiles ship `permissions.defaultMode=bypassPermissions`
-in `.claude/settings.json`, so Claude Code waives every tool-use permission prompt — safe
-only where a bad tool call costs a rebuild, not real data. On a machine holding real
-credentials, production access, or unbacked-up work, read `CLAUDE.md` §"Claude Code config"
-(Permission mode) for the per-machine opt-out **before** installing.
-
 ```bash
 pikaur -S claude-code
 ```
