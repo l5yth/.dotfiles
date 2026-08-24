@@ -486,3 +486,87 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
 | ZX4 Inline init; retire cached-init file | I3, I4, I8 |
 | ZX5 No frecency migration | I6 |
 | ZX6 Ignore + doc footprint | I5, I3 |
+
+---
+
+## Feature: Bypass permission prompts  (Feature SPEC PB1–PB6)
+
+Verifies the feature appended to `SPEC.md` under the same heading. Same idiom as A–I: each
+criterion is a command plus its expected result; run from `$REPO` unless noted. The
+**scratch-`HOME` harness** at the top of this file applies to J3.
+
+- **J1 — Prompt bypass is persisted via `permissions.defaultMode`.** The tracked shared
+  `settings.json` sets `permissions.defaultMode` to exactly `bypassPermissions`.
+  Verify: `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert d['permissions']['defaultMode']=='bypassPermissions'; print('ok')"`
+  → prints `ok` (and exits 0, proving the file is still valid JSON). *(PB1)*
+
+- **J2 — The one-time acknowledgement dialog is retained.**
+  `skipDangerousModePermissionPrompt` is absent from the tracked `settings.json` — neither
+  `true` (which would suppress the dialog) nor an explicit `false` (the key is a state flag
+  Claude Code writes on acceptance, not a config knob to pin).
+  Verify: `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert 'skipDangerousModePermissionPrompt' not in d; assert 'skipDangerousModePermissionPrompt' not in d['permissions']; print('ok')"`
+  → `ok`; and `grep -c skipDangerousModePermissionPrompt .claude/settings.json` → `0`.
+  *(PB4)*
+
+- **J3 — The setting deploys to `~/.claude/` unchanged.** After the scratch-`HOME` harness:
+  `diff "$REPO/.claude/settings.json" "$TMPHOME/.claude/settings.json"` → no diff, and
+  `python3 -c "import json;print(json.load(open('$TMPHOME/.claude/settings.json'))['permissions']['defaultMode'])"`
+  → `bypassPermissions`. *(PB2; C6 still holds with the new content)*
+
+- **J4 — Prior settings keys are preserved.** Adding the `permissions` block did not drop
+  `theme`, `enabledPlugins`, or the `env` block from the effort-level feature.
+  Verify: `python3 -c "import json; d=json.load(open('.claude/settings.json')); assert d['theme']=='dark-ansi'; assert d['enabledPlugins']['rust-analyzer-lsp@claude-plugins-official'] is True; assert d['env']['CLAUDE_CODE_EFFORT_LEVEL']=='max'; print('ok')"`
+  → `ok`. *(guards A2/C6/G1/G2)*
+
+- **J5 — `settings.json` stays tracked and whitelisted; no new `.claude/` surface.**
+  `git ls-files .claude/settings.json` is non-empty; `git check-ignore -v
+  .claude/settings.json` → **no output** (not ignored). `git ls-files .claude/` lists no
+  files beyond the curated set already required by A2. *(PB3, PB6)*
+
+- **J6 — Feature is confined to `settings.json` + docs.** No deploy/ignore/guard machinery
+  changed.
+  Verify: `grep -niE 'permission|bypass' install.sh .gitignore .githooks/pre-commit` →
+  **no output** (the mechanism lives only in `settings.json`; the rationale only in
+  `CLAUDE.md`). *(PB6)*
+
+- **J7 — `CLAUDE.md` documents the premise, the blast radius, and the escape hatch.**
+  §"Claude Code config" names `bypassPermissions`, states the sandbox premise PB2 rests on,
+  states what the setting costs on a machine that is *not* a sandbox, and names
+  `disableBypassPermissionsMode` in `settings.local.json` as the per-machine opt-out. It
+  also records PB4 — that `skipDangerousModePermissionPrompt` is left unset *deliberately*,
+  with a standing instruction not to add it as a convenience, and that `install.sh` wiping
+  the live acceptance flag makes the dialog a per-install check — and the limit that
+  Claude's own destructive-action judgement is unaffected.
+  Verify: `grep -n 'bypassPermissions' CLAUDE.md` and `grep -n
+  'disableBypassPermissionsMode' CLAUDE.md` are both non-empty; `grep -n
+  'skipDangerousModePermissionPrompt' CLAUDE.md` is non-empty and reads as an instruction
+  *not* to set it; and the surrounding text states the sandbox premise and the non-sandbox
+  consequence. *(PB5)*
+
+- **J8 — Mechanism re-verified against the installed CLI (build-time gate).** The value
+  `bypassPermissions` was confirmed against the actually-installed Claude Code before the
+  feature was declared done — it is a member of the `permissions.defaultMode` enum, and
+  `disableBypassPermissionsMode` exists as the documented counter-setting.
+  Verify: the final report cites the evidence (settings schema / `claude --help`
+  `--permission-mode` choices). *(PB1, PB2)*
+
+- **J-REG — No regression in A–I.** Every prior criterion A1–F4, G1–G-REG, H1–H-REG, R1–R8 and I1–I-REG
+  still passes after this feature lands. Explicitly at risk and re-checked: **C6** (shared
+  settings deploys and matches repo — now with the `permissions` block; covered by J3), and
+  **A2 / B1** (only the curated set is tracked, `settings.local.json` excluded — a
+  content-only edit to `settings.json` must not introduce new tracked or stageable paths;
+  covered by J5). **B-series** specifically re-checked in spirit: bypassing permission
+  prompts must not weaken the pre-commit secrets guard, which is a git hook rather than a
+  permission and is therefore untouched (J6 proves the file is unchanged). All other
+  criteria are unaffected by editing an already-managed file.
+
+**Feature decision traceability** (re-verify at every checkpoint, per `SPEC.md`)
+
+| Feature SPEC decision | Proven by |
+|---|---|
+| PB1 Mechanism (`defaultMode: bypassPermissions`) | J1, J3, J8 |
+| PB2 Scope (shared, all machines) + sandbox premise | J3, J7, J8 |
+| PB3 Extends D6 (permissions block in shared settings) | J1, J5 |
+| PB4 Acknowledgement dialog retained (key left unset) | J2, J7 |
+| PB5 Extends D8 (rationale in `CLAUDE.md`) | J7 |
+| PB6 No deploy/ignore/guard change | J5, J6, J-REG |
