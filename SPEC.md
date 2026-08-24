@@ -288,7 +288,11 @@ so the build doesn't drift.
    no-prompt operation silently, including one that does hold real credentials or
    production access. Documented escape hatch for such a machine:
    `permissions.disableBypassPermissionsMode="disable"` in the untracked
-   `settings.local.json` (survives `install.sh`), or removing the `permissions` block.
+   `settings.local.json` (survives `install.sh`), or removing the `permissions` block. The premise is
+   not private to this feature: `README.md` §"Sandbox only" (added independently in
+   `a592f26`) already scopes the `claude-code` install to disposable machines on the same
+   reasoning. That section and this decision are two statements of one rule, so they are
+   cross-linked per PB5 and must be changed together.
 
 3. **[confirmed] PB3 Extends D6 (settings split).** The shared `settings.json` may now
    carry a `permissions` block, alongside `theme` + `enabledPlugins` + `env`. Same
@@ -316,8 +320,14 @@ so the build doesn't drift.
 5. **[confirmed] PB5 Extends D8 (doc sync) / §Inline documentation.** `settings.json` is
    strict JSON and cannot carry inline comments, so the non-obvious rationale — the sandbox
    premise, the blast radius on a non-sandbox machine, the `settings.local.json` escape
-   hatch, and PB4's severability — is documented in `CLAUDE.md` §"Claude Code config"
-   instead of inline. Same constraint that forced FD4; the same section carries both.
+   hatch, and PB4's standing instruction not to set the key — is documented in `CLAUDE.md`
+   §"Claude Code config" instead of inline. Same constraint that forced FD4; the same
+   section carries both. Additionally, because PB2's premise is also asserted in
+   `README.md` §"Sandbox only", the two are cross-linked in both directions — the README
+   section names the setting and points at `CLAUDE.md` for the opt-out; `CLAUDE.md` names
+   the README section and states that the two must move together. `ACCEPTANCE.md` J9 makes
+   the link executable so a future edit to either side fails a check rather than silently
+   drifting. *Extends D8's doc-sync duty to a README↔`CLAUDE.md` pair.*
 
 6. **[confirmed] PB6 Reaffirms D5/D7/D9 (no deploy/ignore/guard change).**
    `settings.json` is already tracked, whitelisted, and deployed, so this feature touches
