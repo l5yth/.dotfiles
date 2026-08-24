@@ -251,3 +251,76 @@ the build doesn't drift.
    non-obvious `--cmd j` choice and the dirs-only successor note). No `CLAUDE.md` change is
    required — it never referenced fasd. *Consistent with D5; touches only the unrelated
    `.fasd` ignore line.*
+
+---
+
+## Feature: Bypass permission prompts (`permissions.defaultMode`)
+
+**Goal.** Stop Claude Code from raising tool-use permission prompts ("do you want to allow
+…?") on every machine these dotfiles install to, persisted through the dotfiles deploy —
+instead of answering the prompts per session or curating a per-machine allowlist in
+`settings.local.json`.
+
+**Core decision driven.** *Whether* prompt suppression is a shared, always-on property of
+the environment or a per-machine opt-in — and, given that it removes a safety barrier,
+what premise makes it acceptable to ship everywhere.
+
+All six decisions below — referenced as PB1–PB6 in `ACCEPTANCE.md` — were confirmed
+2026-08-24. Per the discipline in §Key decisions above, re-verify them at each checkpoint
+so the build doesn't drift.
+
+1. **[confirmed] PB1 Mechanism.** Set `permissions.defaultMode` to `"bypassPermissions"`
+   in the tracked shared `.claude/settings.json`. This is the mode that suppresses prompts
+   wholesale: unlike `allow`/`deny`/`ask` rules it needs no per-tool enumeration, and
+   unlike `acceptEdits` (edits only) or `auto` (classifier-gated) it covers every tool.
+   *(Verified against the installed CLI's settings schema 2026-08-24:
+   `permissions.defaultMode` is `enum(acceptEdits|auto|bypassPermissions|default|dontAsk|
+   plan)`; `--permission-mode` offers the same set. Re-verify at build.)* The CLI flag
+   `--dangerously-skip-permissions` is the equivalent per-session escape hatch and is
+   deliberately **not** the mechanism — it does not persist, which is the whole point.
+
+2. **[confirmed] PB2 Scope, and the premise it rests on.** Shared across all machines: the
+   block lives in the tracked `settings.json`, not `settings.local.json`. This is a
+   deliberate departure from D6's instinct to treat permission config as machine-local, and
+   it is only sound under the **sandbox premise** — every machine running these dotfiles is
+   a disposable sandbox where a bad tool call costs a rebuild, not real data. Consequence,
+   accepted as a trade-off: any future machine that installs these dotfiles inherits
+   no-prompt operation silently, including one that does hold real credentials or
+   production access. Documented escape hatch for such a machine:
+   `permissions.disableBypassPermissionsMode="disable"` in the untracked
+   `settings.local.json` (survives `install.sh`), or removing the `permissions` block.
+
+3. **[confirmed] PB3 Extends D6 (settings split).** The shared `settings.json` may now
+   carry a `permissions` block, alongside `theme` + `enabledPlugins` + `env`. Same
+   principle as D6 and FD3 — shared, non-secret, non-machine-specific config is tracked.
+   D6's `settings.local.json` policy is unchanged, and PB2's escape hatch is precisely a
+   `settings.local.json` override, so the split still does its job in the one direction
+   that matters.
+
+4. **[confirmed] PB4 The acknowledgement dialog is retained.** Do **not** set
+   `skipDangerousModePermissionPrompt`; leave it unset (its default). That key would
+   suppress the one-time "you are enabling bypass mode" acknowledgement Claude Code shows
+   before honouring PB1, and retaining the dialog preserves the one control point PB1
+   otherwise removes: the moment to notice *which* machine this is before waiving every
+   later prompt. Held as its own decision because it is severable in both directions —
+   PB1 is fully in force either way. Recorded as *unset* rather than an explicit `false`
+   because the key is a state flag Claude Code writes on acceptance, not a config knob;
+   pinning `false` in tracked config would assert "has not accepted" on every machine.
+   Second-order effect, accepted and intended: per D2's truth flow `install.sh` overwrites
+   the live `~/.claude/settings.json` wholesale, so the acceptance flag Claude Code writes
+   there is discarded at the next install and the dialog recurs — a per-install check
+   rather than a once-per-machine one. Scope limit worth stating: no key here disables
+   Claude's own in-conversation judgement about destructive or outward-facing actions —
+   only the harness-level prompts.
+
+5. **[confirmed] PB5 Extends D8 (doc sync) / §Inline documentation.** `settings.json` is
+   strict JSON and cannot carry inline comments, so the non-obvious rationale — the sandbox
+   premise, the blast radius on a non-sandbox machine, the `settings.local.json` escape
+   hatch, and PB4's severability — is documented in `CLAUDE.md` §"Claude Code config"
+   instead of inline. Same constraint that forced FD4; the same section carries both.
+
+6. **[confirmed] PB6 Reaffirms D5/D7/D9 (no deploy/ignore/guard change).**
+   `settings.json` is already tracked, whitelisted, and deployed, so this feature touches
+   **no** other machinery: `install.sh`, `.gitignore`, and `.githooks/pre-commit` are
+   unchanged. Note the guard keeps working as designed — bypassing *permission prompts*
+   does not bypass the pre-commit secrets guard, which is a git hook, not a permission.

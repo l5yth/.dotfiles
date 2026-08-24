@@ -5,5 +5,8 @@
   "theme": "dark-ansi",
   "env": {
     "CLAUDE_CODE_EFFORT_LEVEL": "max"
+  },
+  "permissions": {
+    "defaultMode": "bypassPermissions"
   }
 }
