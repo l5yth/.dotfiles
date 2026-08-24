@@ -48,7 +48,7 @@ The rationale lives here for the same reason as the effort level: JSON can't car
 
 ## README ↔ CI coupling
 
-`.github/workflows/ci.yml` walks the README section-by-section (Base / Extras / Desktop / SSH-Keys / Proton Mail) to verify the bootstrap still works end-to-end on a clean Arch container. **When editing `README.md` — in particular the `pacman`, `pikaur`, `npm`, `nvm`, or `ssh-keygen` command blocks — update the matching step in `ci.yml` in the same commit.** Package names, install order, and flags must stay in sync; drift is what CI exists to catch.
+`.github/workflows/ci.yml` walks the README section-by-section (Base / Extras / Sandbox / Desktop / SSH-Keys / Proton Mail) to verify the bootstrap still works end-to-end on a clean Arch container. **When editing `README.md` — in particular the `pacman`, `pikaur`, `npm`, `nvm`, or `ssh-keygen` command blocks — update the matching step in `ci.yml` in the same commit.** Package names, install order, and flags must stay in sync; drift is what CI exists to catch. A README section maps to its **own** step: `claude-code` sat in the Extras pikaur line for a while after `a592f26` split it out into README §"Sandbox only", so CI still built it but no longer mirrored the section it belonged to. When a section is added or split, split the matching step too — a package that merely gets installed somewhere is not the same as a section-by-section walk.
 
 Intentional CI divergences from the README (documented inline in the workflow):
 
