@@ -91,7 +91,20 @@ jobs:
             git clone https://aur.archlinux.org/pikaur.git
             cd pikaur
             makepkg -fsri --noconfirm
-            pikaur -S --noconfirm --needed claude-code pipes.sh lsu-git psn-git pass-secret-service
+            pikaur -S --noconfirm --needed pipes.sh lsu-git psn-git pass-secret-service
+          '
+
+      - name: Sandbox only — AUR package
+        # Mirrors README §"Sandbox only", which is a separate section on purpose:
+        # these dotfiles ship permissions.defaultMode=bypassPermissions in
+        # .claude/settings.json, so claude-code is only installed on disposable
+        # machines. Kept as its own step so the section-by-section walk stays honest
+        # — it was previously bundled into the Extras pikaur line, which mirrored the
+        # pre-a592f26 README layout. Scope limit: this proves the package builds and
+        # installs, not that the host is a sandbox; no container can attest to that.
+        run: |
+          sudo -u builder bash -euc '
+            pikaur -S --noconfirm --needed claude-code
           '
 
       - name: Desktop — official packages

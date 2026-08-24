@@ -565,6 +565,25 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
   Each exits 0. Renaming or deleting either side fails this criterion — which is the point:
   the premise may be revised, but not silently on one side only. *(PB2, PB5)*
 
+- **J10 — README §"Sandbox only" has its own `ci.yml` step (README↔CI coupling).** The
+  section-by-section walk requires a *dedicated* step, not merely that the package is
+  installed somewhere: `claude-code` was bundled into the Extras pikaur line after `a592f26`
+  split the README section out, so CI built it while no longer mirroring the README layout.
+  Verify (all must hold):
+  ```bash
+  grep -q 'name: Sandbox only' .github/workflows/ci.yml         # dedicated step exists
+  test "$(grep -c 'pikaur -S .*claude-code' .github/workflows/ci.yml)" -eq 1  # installed once
+  awk '/^      - name: /{b = /pikaur \+ AUR/} b' .github/workflows/ci.yml \
+    | grep -q claude-code && exit 1 || true                      # NOT back in Extras
+  grep -q 'Base / Extras / Sandbox' CLAUDE.md                    # walk list names it
+  ```
+  Each exits 0. (The third uses an awk block extraction rather than `grep -A<n>`: the
+  `pikaur` line sits eight lines below the step's `name:`, so a fixed-window `-A4` silently
+  passes even when the package *is* re-bundled — a check that cannot fail is not a check.)
+  Scope limit worth stating: the step proves the package builds and installs
+  on a clean container — it cannot attest that the host is a sandbox, which is PB2's premise
+  and is unverifiable by CI. *(PB2; `CLAUDE.md` §"README ↔ CI coupling")*
+
 - **J-REG — No regression in A–I.** Every prior criterion A1–F4, G1–G-REG, H1–H-REG, R1–R8 and I1–I-REG
   still passes after this feature lands. Explicitly at risk and re-checked: **C6** (shared
   settings deploys and matches repo — now with the `permissions` block; covered by J3), and
@@ -580,7 +599,7 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
 | Feature SPEC decision | Proven by |
 |---|---|
 | PB1 Mechanism (`defaultMode: bypassPermissions`) | J1, J3, J8 |
-| PB2 Scope (shared, all machines) + sandbox premise | J3, J7, J8, J9 |
+| PB2 Scope (shared, all machines) + sandbox premise | J3, J7, J8, J9, J10 |
 | PB3 Extends D6 (permissions block in shared settings) | J1, J5 |
 | PB4 Acknowledgement dialog retained (key left unset) | J2, J7 |
 | PB5 Extends D8 (rationale in `CLAUDE.md`, README cross-link) | J7, J9 |
