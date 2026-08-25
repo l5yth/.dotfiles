@@ -274,3 +274,10 @@ bar {
                 binding_mode       #FF5555 #FF5555 #F8F8F2
         }
 }
+
+# Machine-specific i3 config, installed by install.sh from hosts/<uname -n>/ and
+# empty on most machines. Kept last so a host file can override any binding above
+# it — i3 takes the final definition of a key. A glob that matches nothing is a
+# silent no-op (verified on i3 4.25), so this line is inert without the directory
+# and needs no guard; syntax errors inside a matched file are still reported.
+include ~/.config/i3/config.d/*.conf

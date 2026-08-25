@@ -104,7 +104,31 @@ rsync -avh \
 	--exclude='.claude/history.jsonl' \
 	--exclude='.claude/projects/' \
 	--exclude='.claude/sessions/' \
+	--exclude='/hosts/' \
 	"$SRC"/ "$HOME"/
+
+# Per-host overlay: hosts/<uname -n>/ is a second $HOME overlay, mirroring the repo
+# root's layout, applied *after* the common tree so a machine-specific file wins over
+# its shared counterpart. It exists for config that cannot guard itself at runtime —
+# an i3 keybinding is global whether or not the hardware behind it is present, unlike
+# a wireplumber device rule, which simply never matches on a machine without the
+# device and so belongs in the common tree.
+#
+# The exclude above is anchored ('/hosts/'): unanchored, rsync matches a bare basename
+# at any depth and would also swallow a legitimate ~/hosts path elsewhere in the tree.
+# Same failure class as the '/CLAUDE.md' and '/LICENSE' anchors documented above.
+#
+# Absent directory is the normal case: most machines have no overlay, and adding one is
+# `mkdir hosts/$(uname -n)`. No hostname list is kept anywhere; the directory *is* the
+# registration.
+HOST_DIR="$SRC/hosts/$(uname -n)"
+if [ -d "$HOST_DIR" ]; then
+	echo
+	echo "== host overlay: hosts/$(uname -n) =="
+	rsync -avh \
+		--backup --backup-dir="$BACKUP" \
+		"$HOST_DIR"/ "$HOME"/
+fi
 
 if [ -z "$(ls -A "$BACKUP")" ]; then
 	echo "installed, no conflicts"
@@ -114,8 +138,13 @@ else
 	echo "== local modifications replaced (was in \$HOME -> repo) =="
 	(cd "$BACKUP" && find . -type f -print) | while IFS= read -r rel; do
 		rel="${rel#./}"
+		# A replaced file may have come from either overlay. Check the host dir too,
+		# otherwise anything the overlay installs reports as "not a regular file in
+		# repo" and the diff — the whole point of the backup report — is lost.
 		if [ -f "$SRC/$rel" ]; then
 			diff -u --label "home/$rel" --label "repo/$rel" "$BACKUP/$rel" "$SRC/$rel" || true
+		elif [ -f "$HOST_DIR/$rel" ]; then
+			diff -u --label "home/$rel" --label "repo/${HOST_DIR#"$SRC"/}/$rel" "$BACKUP/$rel" "$HOST_DIR/$rel" || true
 		else
 			echo "# $rel: replaced in \$HOME (not a regular file in repo)"
 		fi

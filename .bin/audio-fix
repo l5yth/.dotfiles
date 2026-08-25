@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 l5y
+# SPDX-License-Identifier: Unlicense
+#
+# Recover the Audioengine 2+ USB DAC from a stuck PipeWire XRUN in one keypress.
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+Usage: audio-fix [--status]
+
+Recover the Audioengine 2+ speakers when they go silent but every mixer looks
+healthy. Bounces the card profile off->on, which forces PipeWire to close and
+re-open the ALSA device, clearing an unrecoverable buffer underrun (XRUN).
+
+  --status   Report the kernel-level PCM state and exit without changing anything.
+
+Bound to $mod+Shift+a in i3. Safe to run when nothing is wrong.
+USAGE
+}
+
+# The device is matched by name fragment rather than the full sink name: the
+# latter embeds a serial number and the active profile, both of which change.
+# The literal dot is bracketed, not backslash-escaped: awk warns about `\.` in a
+# dynamic regex and prints that warning over whatever the caller was doing.
+CARD_PATTERN='alsa_card[.]usb-Audioengine_Ltd'
+FALLBACK_PROFILE='output:analog-stereo'
+
+# ALSA renumbers cards between boots (the DAC has been card0 and card1), so
+# address it through the stable /proc/asound symlink for its ALSA id instead.
+ALSA_ID='A2'
+
+note() { printf '%s\n' "$*"; }
+
+# Desktop notification when one is available: this is bound to a hotkey and
+# usually fires mid-call with no terminal in sight, so the feedback has to be
+# visible without one. Never fatal if the daemon is absent.
+notify() {
+  command -v notify-send >/dev/null 2>&1 || return 0
+  notify-send --app-name='audio-fix' --expire-time=4000 "$@" >/dev/null 2>&1 || true
+}
+
+# Kernel truth for whether samples are actually reaching the DAC. wpctl and
+# pactl both keep reporting a wedged sink as healthy, so they cannot be used
+# here; only the PCM substream state distinguishes RUNNING from XRUN.
+pcm_state() {
+  local status="/proc/asound/${ALSA_ID}/pcm0p/sub0/status"
+  [[ -r $status ]] || { printf 'unknown\n'; return; }
+  head -1 "$status" | sed 's/^state: //'
+}
+
+usb_state() {
+  local stream="/proc/asound/${ALSA_ID}/stream0"
+  [[ -r $stream ]] || { printf 'unknown\n'; return; }
+  awk '/^Playback:/ {found=1; next} found && /Status:/ {gsub(/^[ \t]+/, "", $0); print $2; exit}' "$stream"
+}
+
+if [[ ${1:-} == -h || ${1:-} == --help ]]; then
+  usage
+  exit 0
+fi
+
+if [[ ${1:-} == --status ]]; then
+  note "pcm:  $(pcm_state)"
+  note "usb:  $(usb_state)"
+  exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+  usage >&2
+  exit 1
+fi
+
+card=$(pactl list cards short 2>/dev/null | awk -v p="$CARD_PATTERN" '$2 ~ p {print $2; exit}')
+
+if [[ -z $card ]]; then
+  note 'Audioengine 2+ card not found — is it plugged in and powered?' >&2
+  notify --urgency=critical 'Audio' 'Audioengine 2+ not found'
+  exit 1
+fi
+
+# Restore whatever profile was active rather than assuming stereo, so this stays
+# correct if the card is ever switched to one of its IEC958 profiles. A card
+# already parked at "off" reports no usable profile, hence the fallback.
+active=$(pactl list cards 2>/dev/null |
+  awk -v c="Name: $card" '
+    index($0, c) { found = 1; next }
+    found && /Active Profile:/ { print $3; exit }
+  ')
+
+if [[ -z $active || $active == off ]]; then
+  active=$FALLBACK_PROFILE
+fi
+
+pactl set-card-profile "$card" off
+pactl set-card-profile "$card" "$active"
+
+# Bouncing the profile destroys and recreates the node, and a freshly created
+# node starts suspended with its PCM closed — precisely the state whose next
+# re-open is what wedges this DAC. Without this the script would "recover" the
+# device straight back into the failure mode. Push a moment of digital silence
+# through it to force the open here, under our control, so it settles into the
+# permanently-open state that 99-audioengine-suspend.conf then holds.
+#
+# --volume=0 on top of a /dev/zero source is silent twice over: this runs
+# mid-call and must never make a sound. Failure is not fatal; the bounce itself
+# is the fix and the next real stream would open the device anyway.
+if command -v pw-cat >/dev/null 2>&1; then
+  timeout 1 pw-cat -p --raw --format=s16 --rate=48000 --channels=2 \
+    --volume=0 /dev/zero >/dev/null 2>&1 || true
+fi
+
+state=$(pcm_state)
+note "Audioengine 2+ reset (profile ${active}) — pcm: ${state}"
+
+# After the re-arm above a healthy device reads RUNNING. A lingering XRUN means
+# the bounce did not take and only a full PipeWire restart will clear it.
+if [[ $state == XRUN ]]; then
+  note 'Still in XRUN — escalate: systemctl --user restart pipewire pipewire-pulse wireplumber' >&2
+  notify --urgency=critical 'Audio' 'Still stuck — restart PipeWire'
+  exit 1
+fi
+
+notify 'Audio' 'Audioengine 2+ reset'
