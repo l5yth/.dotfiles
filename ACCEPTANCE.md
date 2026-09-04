@@ -251,7 +251,9 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
   Verify: `grep -c '^## ' .claude/CLAUDE.md` → `6`; `grep -qF 'l5y standards (all projects)'
   .claude/CLAUDE.md`; `grep -qi 'conflict' .claude/CLAUDE.md` (the preamble); and both
   `grep -qF 'SPDX-FileCopyrightText: <year> <holder>' .claude/CLAUDE.md` and
-  `grep -qF 'SPDX-License-Identifier: <ID>' .claude/CLAUDE.md` succeed (exit 0). *(GS2, GS3)*
+  `grep -qF 'SPDX-License-Identifier: <ID>' .claude/CLAUDE.md` succeed (exit 0).
+  The `###` subsection added by GS7 lives *inside* `## Documentation` and so does not
+  move the `^## ` count off `6` — see H7. *(GS2, GS3)*
 
 - **H3 — The file deploys to `~/.claude/` unchanged.** After the scratch-`HOME` harness:
   `test -f "$TMPHOME/.claude/CLAUDE.md"` and `diff "$REPO/.claude/CLAUDE.md"
@@ -276,6 +278,21 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
   Verify: `grep -n '\.claude/CLAUDE\.md' CLAUDE.md` is non-empty, and the surrounding
   §"Claude Code config" text states the anchored-exclude reason (e.g. `grep -ni anchor
   CLAUDE.md` is non-empty). *(GS5)*
+
+- **H7 — User-facing documentation rules are present and scoped.** `.claude/CLAUDE.md`
+  §Documentation carries a `###` subsection whose heading names the scope (README, guides,
+  tutorials, CLI help, changelogs) and whose body states all five rules: no em-dashes, no
+  emojis, no prose/reasoning, concise "do X to get Y", why/how in SPEC or API documentation.
+  Verify:
+  ```bash
+  grep -c '^## ' .claude/CLAUDE.md                                   # still 6, not 7
+  grep -q '^### User-facing documentation' .claude/CLAUDE.md         # scoped heading
+  sec=$(sed -n '/^### User-facing documentation/,/^## /p' .claude/CLAUDE.md)
+  for pat in 'em-dash' emoji prose 'do X to get Y' SPEC; do
+    printf '%s' "$sec" | grep -qi -- "$pat" || echo "MISSING: $pat"
+  done
+  ```
+  The count prints `6`, the heading grep exits 0, and the loop prints nothing. *(GS7)*
 
 - **H-REG — No regression in A–G.** Every prior criterion A1–F4 and G1–G-REG still passes.
   Explicitly at risk and re-checked:
@@ -303,6 +320,7 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
 | GS4 install.sh anchor (`/CLAUDE.md`) | H3, H4, H5 |
 | GS5 Doc sync | H6 |
 | GS6 No ignore/guard/scope change | H1, H-REG |
+| GS7 User-facing documentation rules (amends GS3) | H2, H7 |
 
 ---
 
@@ -550,20 +568,25 @@ criterion is a command plus its expected result; run from `$REPO` unless noted. 
   Verify: the final report cites the evidence (settings schema / `claude --help`
   `--permission-mode` choices). *(PB1, PB2)*
 
-- **J9 — The sandbox premise is cross-linked between `README.md` and `CLAUDE.md`, both
-  ways.** PB2's premise is asserted in two files and must not drift: `README.md` §"Sandbox
-  only" scopes the `claude-code` install to disposable machines *and* names the setting that
-  makes it necessary, pointing at `CLAUDE.md` for the opt-out; `CLAUDE.md` §"Claude Code
-  config" names that README section back and states the two must move together.
+- **J9 — `CLAUDE.md` is the sole home of the sandbox premise, and the README section stays
+  bare.** *(Rewritten 2026-09-04 per PB2-U/PB5-U; the former bidirectional-cross-link version
+  is superseded — see SPEC GS7.)* The link is now one-way. `CLAUDE.md` §"Claude Code config"
+  carries the premise, the setting, the escape hatch, and names §"Sandbox only" explaining why
+  it stays bare; `README.md` §"Sandbox only" is a heading plus its command block and nothing
+  else, per the user-facing documentation rules in `.claude/CLAUDE.md` §Documentation.
   Verify (all four must hold):
   ```bash
-  grep -q '^## Sandbox only' README.md                         # section still exists
-  grep -A6 '^## Sandbox only' README.md | grep -q 'bypassPermissions'   # names the setting
-  grep -A6 '^## Sandbox only' README.md | grep -q 'CLAUDE.md'  # points at the rationale
-  grep -q 'Sandbox only' CLAUDE.md                             # and is named back
+  grep -q '^## Sandbox only' README.md                     # section still exists (CI walks it)
+  sed -n '/^## Sandbox only/,/^## /p' README.md \
+    | grep -qvE '^(## |```|pikaur |$)' && echo PROSE-RETURNED   # must print nothing
+  grep -q 'Sandbox only' CLAUDE.md                         # CLAUDE.md still names it
+  grep -q 'disableBypassPermissionsMode' CLAUDE.md         # and still carries the opt-out
   ```
-  Each exits 0. Renaming or deleting either side fails this criterion — which is the point:
-  the premise may be revised, but not silently on one side only. *(PB2, PB5)*
+  Greps 1, 3, 4 exit 0; line 2 prints nothing. The middle check is the live one: it fails the
+  moment a warning or pointer is re-added to that README section, which is exactly the edit
+  GS7 forbids and `5f90d2e` performed in reverse. Deleting the premise from `CLAUDE.md` now
+  deletes it outright, so checks 3 and 4 are the only thing standing between the setting and
+  an undocumented blast radius. *(PB2, PB2-U, PB5, PB5-U, GS7)*
 
 - **J10 — README §"Sandbox only" has its own `ci.yml` step (README↔CI coupling).** The
   section-by-section walk requires a *dedicated* step, not merely that the package is
