@@ -9,8 +9,9 @@ sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vi
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo systemctl enable --now dhcpcd iwd cronie ufw
-git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.dotfiles
-~/.dotfiles/install.sh
+mkdir -p ~/.src/l5yth
+git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.src/l5yth/.dotfiles
+~/.src/l5yth/.dotfiles/install.sh
 dotfiles-resolve
 chsh -s /usr/bin/zsh
 source $HOME/.zshrc

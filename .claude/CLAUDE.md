@@ -29,6 +29,16 @@
 - Concise: do X to get Y. Not why, not how it works.
 - Why and how go in SPEC documents or API documentation instead.
 
+## Specifications and agent instructions
+- A repository's instructions and specifications live in the spec repo, not in the
+  repository itself:
+    ~/.src/l5yth/spec/$org/$repo/    (or $user in place of $org)
+- Read that directory before starting work. Treat a `CLAUDE.md`, `SPEC.md`, or
+  `ACCEPTANCE.md` found there as if it sat at the project root.
+- No entry for the repository: fall back to the project's own files.
+- Amend the entry as work proceeds. Decisions go in `SPEC.md`, verification criteria in
+  `ACCEPTANCE.md`, standing guidance in `CLAUDE.md`. Do not leave them in the conversation.
+
 ## Structure
 - Files: 500 to 1000 LOC. Refactor when a file runs well past 1000.
 - Modular from the first commit, not as later cleanup.
@@ -43,3 +53,6 @@
 - Create feature branches. Name them l5y-$area-$scope.
 - Never push. Never open pull requests.
 - Never commit. On finishing a unit of work, print a suggested commit message unprompted.
+- One exception, in `~/.src/l5yth/spec` and no other repository: at the end of a unit of
+  work, commit the spec amendments and push them to `main`. No feature branch, no mid-task
+  pushes.

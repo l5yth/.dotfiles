@@ -1,5 +1,11 @@
 I am fixing $ARGUMENTS.
 
+Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at
+the project root (global standards, §Specifications and agent instructions). Every
+`CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there,
+write it there, and create the entry if this repository has none. Fall back to the
+project's own files only if it keeps them at its root instead.
+
 ## Phase 0: Reproduce and locate
 
 Do not fix anything yet. First read `CLAUDE.md`, `SPEC.md`, `ACCEPTANCE.md`, and the guardrails. Then reproduce the bug deterministically: give me the exact command, input, or steps that trigger it, and the observed versus expected behavior. If you cannot reproduce it, stop and tell me what you need; do not patch a bug you cannot trigger.

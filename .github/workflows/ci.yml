@@ -54,15 +54,25 @@ jobs:
         # The wttr-fetch crontab entry only edits /var/spool/cron/<user>; it
         # works in the container even though cronie.service isn't running,
         # which lets us exercise the README command without a real scheduler.
+        #
+        # install.sh also clones git@github.com:l5yth/spec.git (SPEC SR4). That
+        # repo is private and the container has no SSH key, so the clone always
+        # fails here and install.sh warns and continues — deliberately, because a
+        # hard failure would make README §Base unbootstrappable on a fresh machine
+        # whose key is only created later in §SSH-Keys. The .src/l5yth assertion
+        # below is what keeps that non-fatal path honest: the directory must exist
+        # even though the clone inside it did not.
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           sudo -u builder bash -euc '
             src=$1
-            cp -a "$src" "$HOME/.dotfiles"
-            "$HOME/.dotfiles/install.sh"
+            mkdir -p "$HOME/.src/l5yth"
+            cp -a "$src" "$HOME/.src/l5yth/.dotfiles"
+            "$HOME/.src/l5yth/.dotfiles/install.sh"
             test -f "$HOME/.zshrc"
             test -d "$HOME/.zsh/pure"
             test -x "$HOME/.bin/dotfiles-resolve"
+            test -d "$HOME/.src/l5yth"
             { crontab -l 2>/dev/null | grep -vF "wttr-fetch" || true ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ; } | crontab -
             crontab -l | grep -qF "wttr-fetch"
           ' _ "$GITHUB_WORKSPACE"

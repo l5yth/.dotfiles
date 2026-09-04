@@ -2,6 +2,12 @@
 
 I am building $ARGUMENTS.
 
+Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at
+the project root (global standards, §Specifications and agent instructions). Every
+`CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there,
+write it there, and create the entry if this repository has none. Fall back to the
+project's own files only if it keeps them at its root instead.
+
 ## Phase 0: Spec (interview first)
 
 Do not write code or prose yet. Interview me, one question at a time, until you have identified the real goal and the core decision this project is intended to drive. Bias toward small, compartmentalized specs over one monolith.

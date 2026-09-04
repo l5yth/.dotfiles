@@ -1,5 +1,11 @@
 I am adding $ARGUMENTS.
 
+Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at
+the project root (global standards, §Specifications and agent instructions). Every
+`CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there,
+write it there, and create the entry if this repository has none. Fall back to the
+project's own files only if it keeps them at its root instead.
+
 ## Phase 0: Load the existing structure
 
 Do not write code, prose, or questions yet. First read `CLAUDE.md`, `SPEC.md`, `ACCEPTANCE.md`, the installed skills, and the hooks/guardrails. Tell me back, in a few lines:
