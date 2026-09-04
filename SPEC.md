@@ -189,6 +189,31 @@ so the build doesn't drift.
    command-set boundary (`bugfix`/`feature`/`kickoff`, no agents/skills) is untouched. No
    change to `.gitignore`, `.githooks/pre-commit`, or the tracked command set.
 
+7. **[confirmed] GS7 Content amendment: user-facing documentation style (2026-09-04).**
+   GS3 froze the *supplied* standards verbatim; it does not freeze the standards themselves,
+   which may grow by explicit request. Five rules were added under `## Documentation`,
+   scoped to user-facing documentation (README, guides, tutorials, CLI help, changelogs):
+   no em-dashes, no emojis, no prose or reasoning, concise "do X to get Y" phrasing, and
+   why/how redirected to SPEC or API documentation. Two shape decisions:
+   *(a)* they land as a `###` subsection of `## Documentation`, not a seventh `##` section,
+   so the scope stays attached to the documentation rules and ACCEPTANCE H2's
+   six-`##`-heading contract still holds;
+   *(b)* the heading's parenthetical scope list is load-bearing — it keeps the rules off
+   inline comments and off SPEC/ACCEPTANCE prose, both of which repo-root `CLAUDE.md`
+   (§Inline documentation in configs) and this file actively require. Without the scope
+   line the "no reasoning" rule would read as forbidding the very documents that GS7
+   redirects the reasoning *into*. *Amends GS3; changes no machinery, so GS1/GS4/GS6 are
+   untouched.*
+
+   **Consequence, resolved 2026-09-04.** Rule 3 (no prose/reasoning in a README) collided
+   with the PB2 sandbox premise, which required `README.md` §"Sandbox only" to carry a prose
+   warning and a pointer to `CLAUDE.md` (old ACCEPTANCE J9, four greps). Commit `5f90d2e`
+   had already deleted that warning without touching `CLAUDE.md` or J9, so J9 was failing —
+   pre-existing drift that GS7 endorses rather than causes. Resolved in GS7's favour rather
+   than by a GS2 project-override: the cross-link is dropped, `CLAUDE.md` becomes the sole
+   home of the premise, and J9 is rewritten to enforce the bare README section. See PB2-U
+   and PB5-U above for the superseding decisions.
+
 ---
 
 ## Feature: Replace fasd with zoxide
@@ -294,6 +319,15 @@ so the build doesn't drift.
    reasoning. That section and this decision are two statements of one rule, so they are
    cross-linked per PB5 and must be changed together.
 
+   *(Update 2026-09-04 — **PB2-U, supersedes the last two sentences.** `5f90d2e` deleted the
+   README warning, and GS7 now bars prose and rationale from user-facing docs, so §"Sandbox
+   only" is permanently a bare heading plus its command block. The premise is no longer
+   asserted in two places: `CLAUDE.md` §"Claude Code config" is its sole home. The README
+   section survives as a **name only** — enough that a reader sees the word "sandbox" and
+   that the CI README-walk keeps its own step, not enough to carry the reasoning. Accepted
+   consequence: a reader who installs from the README alone never encounters the warning.
+   The premise itself is unchanged; only where it is written down.)*
+
 3. **[confirmed] PB3 Extends D6 (settings split).** The shared `settings.json` may now
    carry a `permissions` block, alongside `theme` + `enabledPlugins` + `env`. Same
    principle as D6 and FD3 — shared, non-secret, non-machine-specific config is tracked.
@@ -328,6 +362,13 @@ so the build doesn't drift.
    the README section and states that the two must move together. `ACCEPTANCE.md` J9 makes
    the link executable so a future edit to either side fails a check rather than silently
    drifting. *Extends D8's doc-sync duty to a README↔`CLAUDE.md` pair.*
+
+   *(Update 2026-09-04 — **PB5-U, supersedes the bidirectional cross-link above.** Per PB2-U
+   the link is now one-way: `CLAUDE.md` names §"Sandbox only" and explains why that section
+   stays bare; the README points nowhere. J9 is rewritten to match — it holds the README
+   section to heading-plus-command (making GS7 rule 3 executable on the one section most
+   likely to re-grow a warning) and still requires `CLAUDE.md` to name it. The doc-sync duty
+   is unchanged in force, only in direction.)*
 
 6. **[confirmed] PB6 Reaffirms D5/D7/D9 (no deploy/ignore/guard change).**
    `settings.json` is already tracked, whitelisted, and deployed, so this feature touches

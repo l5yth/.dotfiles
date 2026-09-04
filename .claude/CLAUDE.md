@@ -22,6 +22,13 @@
 - Docs complete enough to generate full API documentation from source.
 - Inline comments wherever the logic is not self-evident.
 
+### User-facing documentation (README, guides, tutorials, CLI help, changelogs)
+- No em-dashes.
+- No emojis.
+- No prose and no reasoning. Steps, facts, and commands only.
+- Concise: do X to get Y. Not why, not how it works.
+- Why and how go in SPEC documents or API documentation instead.
+
 ## Structure
 - Files: 500 to 1000 LOC. Refactor when a file runs well past 1000.
 - Modular from the first commit, not as later cleanup.
