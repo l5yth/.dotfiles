@@ -8,5 +8,20 @@
   },
   "permissions": {
     "defaultMode": "bypassPermissions"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=\"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills/i-have-adhd\"; [ -f \"$d/hooks/always-on.mjs\" ] || exit 0; command -v node >/dev/null 2>&1 || for n in \"$HOME\"/.nvm/versions/node/*/bin; do [ -x \"$n/node\" ] && { PATH=\"$n:$PATH\"; break; }; done; command -v node >/dev/null 2>&1 || exit 0; CLAUDE_CONFIG_DIR=\"$d\" exec node \"$d/hooks/always-on.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Loading i-have-adhd ruleset..."
+          }
+        ]
+      }
+    ]
   }
 }

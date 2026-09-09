@@ -33,6 +33,9 @@
 - A repository's instructions and specifications live in the spec repo, not in the
   repository itself:
     ~/.src/l5yth/spec/$org/$repo/    (or $user in place of $org)
+- Pull before reading: `git -C ~/.src/l5yth/spec pull --ff-only`. The tree is shared across
+  machines, so a stale clone means amending a spec that has already moved on, and the push
+  at the end of the work then lands on a base that no longer exists.
 - Read that directory before starting work. Treat a `CLAUDE.md`, `SPEC.md`, or
   `ACCEPTANCE.md` found there as if it sat at the project root.
 - No entry for the repository: fall back to the project's own files.
@@ -53,6 +56,7 @@
 - Create feature branches. Name them l5y-$area-$scope.
 - Never push. Never open pull requests.
 - Never commit. On finishing a unit of work, print a suggested commit message unprompted.
-- One exception, in `~/.src/l5yth/spec` and no other repository: at the end of a unit of
-  work, commit the spec amendments and push them to `main`. No feature branch, no mid-task
-  pushes.
+- One exception, in `~/.src/l5yth/spec` and no other repository: `pull --ff-only` before
+  starting (see §Specifications), then at the end of a unit of work commit the spec
+  amendments and push them to `main`. Pull `--ff-only` again immediately before that push —
+  the remote can move while the work is in progress. No feature branch, no mid-task pushes.

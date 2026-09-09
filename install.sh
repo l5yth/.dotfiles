@@ -80,6 +80,12 @@ rmdir "$HOME"/.vim/after/syntax "$HOME"/.vim/after/plugin "$HOME"/.vim/after 2>/
 # against a re-add, and '/CLAUDE.md' must keep its leading slash: an unanchored pattern
 # also matches the shipped .claude/CLAUDE.md overlay (rsync matches a bare basename at any
 # depth) and would silently block it from deploying.
+# '/LICENSE' is anchored for the same reason and it is not hypothetical: the vendored
+# i-have-adhd plugin ships upstream's MIT LICENSE at .claude/skills/i-have-adhd/LICENSE
+# (AD8), and the unanchored form silently swallowed it — caught by ACCEPTANCE L7, which
+# diffs the deployed tree against the repo. Any future root-file exclude whose basename
+# also appears under .claude/ needs the same leading slash; README.md is the next
+# candidate and is left unanchored only because nothing collides with it yet.
 rsync -avh \
 	--backup --backup-dir="$BACKUP" \
 	--exclude='.git/' \
@@ -88,7 +94,7 @@ rsync -avh \
 	--exclude='.gitignore' \
 	--exclude='.gitmodules' \
 	--exclude='/CLAUDE.md' \
-	--exclude='LICENSE' \
+	--exclude='/LICENSE' \
 	--exclude='README.md' \
 	--exclude='SPEC.md' \
 	--exclude='ACCEPTANCE.md' \
