@@ -14,6 +14,9 @@ alias ls="ls --color=auto"
 alias ll="ls --color=auto -lshaF"
 alias grep="grep --color=auto"
 
+# activate the shared python venv (~/.venv) on demand; not auto-sourced
+alias venv='source ~/.venv/bin/activate'
+
 # zoxide: frecency dir-jump, the maintained successor to the abandoned fasd. `--cmd j`
 # preserves the old `j` habit — `j <q>` cd's to the top-ranked match, `ji <q>` opens an
 # fzf picker (needs the fzf binary). Directories only: fasd's file commands (f/a/s/sf/sd)

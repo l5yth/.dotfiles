@@ -36,10 +36,6 @@ jobs:
           submodules: recursive
 
       - name: Base — pacman packages
-        # systemctl enable --now {dhcpcd,iwd,cronie,ufw} from the README is skipped:
-        # the arch container has no running systemd to accept unit state changes.
-        # `ufw default …` policy commands only edit /etc/default/ufw, so they
-        # work fine without a kernel netfilter or a running service.
         run: |
           pacman -S --noconfirm --needed \
             base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim \
@@ -51,17 +47,6 @@ jobs:
           ufw default allow outgoing
 
       - name: Base — clone + install.sh + chsh
-        # The wttr-fetch crontab entry only edits /var/spool/cron/<user>; it
-        # works in the container even though cronie.service isn't running,
-        # which lets us exercise the README command without a real scheduler.
-        #
-        # install.sh also clones git@github.com:l5yth/spec.git (SPEC SR4). That
-        # repo is private and the container has no SSH key, so the clone always
-        # fails here and install.sh warns and continues — deliberately, because a
-        # hard failure would make README §Base unbootstrappable on a fresh machine
-        # whose key is only created later in §SSH-Keys. The .src/l5yth assertion
-        # below is what keeps that non-fatal path honest: the directory must exist
-        # even though the clone inside it did not.
         run: |
           chown -R builder:builder "$GITHUB_WORKSPACE"
           sudo -u builder bash -euc '
@@ -104,22 +89,21 @@ jobs:
             pikaur -S --noconfirm --needed pipes.sh lsu-git psn-git pass-secret-service
           '
 
+      - name: Extras — Python venv + pip packages
+        run: |
+          sudo -u builder bash -euc '
+            python -m venv ~/.venv
+            source ~/.venv/bin/activate
+            pip install -U pip cbor2 black pytest meshtastic meshcore-cli rns nomadnet
+          '
+
       - name: Sandbox only — AUR package
-        # Mirrors README §"Sandbox only", which is a separate section on purpose:
-        # these dotfiles ship permissions.defaultMode=bypassPermissions in
-        # .claude/settings.json, so claude-code is only installed on disposable
-        # machines. Kept as its own step so the section-by-section walk stays honest
-        # — it was previously bundled into the Extras pikaur line, which mirrored the
-        # pre-a592f26 README layout. Scope limit: this proves the package builds and
-        # installs, not that the host is a sandbox; no container can attest to that.
         run: |
           sudo -u builder bash -euc '
             pikaur -S --noconfirm --needed claude-code
           '
 
       - name: Desktop — official packages
-        # systemctl enable --now bluetooth and the `--user` pipewire/syncthing lines
-        # are skipped for the same reason as the Base section.
         run: |
           pacman -S --noconfirm --needed \
             syncthing hplip cups cups-pdf brightnessctl autorandr bluez bluez-utils \
@@ -131,9 +115,6 @@ jobs:
             pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk
 
       - name: Desktop — AUR packages
-        # i3lock ships as part of the `i3` group in Base; remove it so pikaur can
-        # install i3lock-color without the interactive conflict prompt that
-        # `--noconfirm` defaults to No.
         run: |
           sudo -u builder bash -euc '
             sudo pacman -Rdd --noconfirm i3lock
@@ -143,11 +124,6 @@ jobs:
           '
 
       - name: SSH-Keys
-        # Mirrors README verbatim. `-N ""` is now in both places (the key is
-        # deliberately passphrase-less — see README SSH-Keys prose + CLAUDE.md
-        # rationale). `-f ~/.ssh/id_ed25519` is the only CI-only bit: skips
-        # the interactive file-path prompt, since the container has no TTY.
-        # $HOST defaults to "ci" here (the Arch container has no HOST env set).
         run: |
           sudo -u builder bash -euc '
             HOST=ci
@@ -156,17 +132,6 @@ jobs:
           '
 
       - name: Proton Mail — GPG key + pass init
-        # Mirrors the README block. Divergences:
-        #  - `protonmail-bridge-core --cli` is an interactive network login,
-        #    swapped for `command -v` so we only check the prerequisite
-        #    binary landed.
-        #  - `systemctl --user restart pass-secret-service` and
-        #    `systemctl --user enable --now protonmail-bridge` are dropped
-        #    for the same no-systemd-in-container reason as Base/Desktop.
-        # Fingerprint comes from gpg's own --status-file (KEY_CREATED line),
-        # never from `gpg --list-secret-keys` — the README spec explicitly
-        # forbids a list-based guard so the generated key is always the pass
-        # recipient regardless of what other keys exist on the machine.
         run: |
           sudo -u builder bash -euc '
             mkdir -p ~/.gnupg && chmod -R u=rwX,go= ~/.gnupg
