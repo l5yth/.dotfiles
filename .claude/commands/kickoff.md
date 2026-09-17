@@ -37,7 +37,13 @@ Break the project into small agile buckets. One bucket at a time:
 3. Stop at a checkpoint: show the output, restate the Phase 0 decisions it touched
 4. Wait for my sign-off before the next bucket
 
-## Phase 4: Independent review
+## Phase 4: Commit message
+
+Print the suggested commit message now, before the review. Do not commit and do not push. The message covers the whole unit of work, so the PR can go up and Phase 5 can run against it in parallel.
+
+If the review then finds failures, fix them and print an amended message.
+
+## Phase 5: Independent review
 
 When all buckets are done, have a second, fresh instance review the result against `ACCEPTANCE.md` (subagent or `claude -p "Review this repo strictly against ACCEPTANCE.md. List every failure."`). Report failures verbatim, fix, re-run until clean. Only then declare the project finished.
 
