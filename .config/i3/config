@@ -23,9 +23,23 @@ set $font_small   "pango:DejaVu Sans Mono 10"
 font $font_default
 
 # amdgpu re-enumerates outputs when the monitors wake from DPMS power-save and
-# can swap DisplayPort-1/HDMI-A-0 left<->right. autorandr re-applies the saved
-# "desktop" profile (.config/autorandr/) to pin the layout; its udev hook does
-# this on hotplug, so this exec_always is just the session-start/reload baseline.
+# can swap DisplayPort-1/HDMI-A-0 left<->right. This line is NOT what pins them:
+# no autorandr profile is tracked in this repo, so --change has nothing to apply
+# unless one was saved locally on the machine. Kept as the hook for that case:
+# cheap, and the line to keep if a profile is ever saved here.
+#
+# Pinning, where it happens at all, is per-host and this repo ships none by
+# default: on intan it is hosts/intan/.config/i3/config.d/50-display.conf,
+# reached via the config.d include at the end of this file. On a machine with
+# no host overlay nothing in this repo pins the layout. Don't read this line
+# as a guarantee.
+#
+# That include is last, so i3 *launches* the drop-in after this line, which is
+# not the same as the drop-in finishing last. If a profile is ever saved,
+# autorandr fingerprints EDIDs and then calls xrandr itself, and can finish
+# after the drop-in's one-shot call and overwrite it — launch order is not
+# completion order. Settle that when it happens; file position will not
+# decide it.
 exec_always --no-startup-id autorandr --change
 
 # Pick i3bar/window-title font size from the tallest connected display
