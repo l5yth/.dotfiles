@@ -42,5 +42,13 @@ Two conditions, both required:
 1. The check from Phase 2 now passes.
 2. Every prior acceptance criterion still passes. Run them. The point of a bugfix is that the system is strictly better afterward, never a trade of one defect for another.
 
-Then have a fresh instance review against the amended `ACCEPTANCE.md` (subagent or `claude -p "Review this repo strictly against ACCEPTANCE.md, including the new regression line AND all prior criteria. Confirm the bug is fixed and nothing else regressed. List every failure."`). Report failures verbatim, fix, re-run until clean. Only then is the bug closed.
+## Phase 5: Commit message
+
+Print the suggested commit message now, before the review. Do not commit and do not push. The message covers the whole fix, so the PR can go up and Phase 6 can run against it in parallel.
+
+If the review then finds failures, fix them and print an amended message.
+
+## Phase 6: Independent review
+
+Have a fresh instance review against the amended `ACCEPTANCE.md` (subagent or `claude -p "Review this repo strictly against ACCEPTANCE.md, including the new regression line AND all prior criteria. Confirm the bug is fixed and nothing else regressed. List every failure."`). Report failures verbatim, fix, re-run until clean. Only then is the bug closed.
 

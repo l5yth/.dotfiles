@@ -48,7 +48,13 @@ Break the feature into small agile buckets. One at a time:
 3. Checkpoint: show the output, restate which SPEC decisions (old and new) it touched
 4. Wait for my sign-off before the next bucket
 
-## Phase 5: Independent review
+## Phase 5: Commit message
+
+Print the suggested commit message now, before the review. Do not commit and do not push. The message covers the whole unit of work, so the PR can go up and Phase 6 can run against it in parallel.
+
+If the review then finds failures, fix them and print an amended message.
+
+## Phase 6: Independent review
 
 When the feature is done, have a fresh instance review against the amended `ACCEPTANCE.md` (subagent or `claude -p "Review this repo strictly against ACCEPTANCE.md, including the new feature section AND the prior criteria. List every failure."`). It must confirm both the new criteria and no regression in the old ones. Report failures verbatim, fix, re-run until clean. Only then is the feature done.
 
