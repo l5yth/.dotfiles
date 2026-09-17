@@ -86,6 +86,12 @@ rmdir "$HOME"/.vim/after/syntax "$HOME"/.vim/after/plugin "$HOME"/.vim/after 2>/
 # diffs the deployed tree against the repo. Any future root-file exclude whose basename
 # also appears under .claude/ needs the same leading slash; README.md is the next
 # candidate and is left unanchored only because nothing collides with it yet.
+# .reticulum/ ships exactly one tracked file, the config. rnsd's own state sits beside it in
+# ~/.reticulum/storage/ (transport_identity, ratchets) and ~/.reticulum/interfaces/, and the
+# .gitignore whitelist hides an accidental copy of those from `git status` — so an untracked
+# copy in the working tree would rsync over a machine's live identity with no trace of it.
+# These two excludes are the deploy-time half of that guard; .gitignore is the commit-time
+# half. Anchored for the reason given above.
 rsync -avh \
 	--backup --backup-dir="$BACKUP" \
 	--exclude='.git/' \
@@ -104,6 +110,8 @@ rsync -avh \
 	--exclude='.claude/history.jsonl' \
 	--exclude='.claude/projects/' \
 	--exclude='.claude/sessions/' \
+	--exclude='/.reticulum/storage/' \
+	--exclude='/.reticulum/interfaces/' \
 	--exclude='/hosts/' \
 	"$SRC"/ "$HOME"/
 

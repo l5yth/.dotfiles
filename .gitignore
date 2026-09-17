@@ -7,6 +7,13 @@
 !/.claude/hooks/
 !/.claude/CLAUDE.md
 !/.claude/settings.json
+
+# .reticulum/ is a $HOME overlay too: deny everything, allow only the config.
+# rnsd writes this node's private keys next to it in storage/ (transport_identity,
+# ratchets); they must never be committed, and this repository is public.
+/.reticulum/*
+!/.reticulum/config
+
 .config/i3status/wttr
 .viminfo
 .zcompdump
