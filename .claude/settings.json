@@ -9,6 +9,8 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
+  "remoteControlAtStartup": true,
+  "tui": "default",
   "hooks": {
     "SessionStart": [
       {
