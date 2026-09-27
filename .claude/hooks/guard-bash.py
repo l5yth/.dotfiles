@@ -11,7 +11,13 @@ Denies, whatever wrapper or flag carries them:
 - ``git commit``, ``git push`` and ``git tag`` outside ``~/.src/l5yth/spec``
   (the global rules allow commits and pushes only there), and any forced push;
 - deploy scripts that publish a site: ``npm run deploy``, ``yarn deploy``,
-  ``gh-pages``.
+  ``gh-pages``;
+- the destructive git commands of the deny list, which match literal prefixes
+  only and so miss ``git -C <dir>`` and wrapped forms: ``reset --hard``,
+  ``clean``, ``restore``, ``checkout`` with ``--``, ``.`` or ``-f``, ``switch``
+  with ``-f`` or ``--discard-changes``, ``branch -D``, ``stash drop`` and
+  ``clear``, ``filter-branch``, ``filter-repo``, ``reflog expire`` and
+  ``delete``, ``update-ref -d`` and ``gc --prune``.
 
 Everything else falls through to the normal permission rules. The hook reads
 the PreToolUse JSON on stdin and answers with a ``permissionDecision``.
@@ -34,13 +40,23 @@ START = (
     r"(?:(?:env|command|builtin|exec|nohup|time|sudo|doas|xargs|stdbuf|nice)"
     r"(?:\s+-\S+)*\s+|timeout\s+\S+\s+|\w+=\S*\s+)*"
 )
-# `git`, optionally as a path, then global options, then the subcommand.
-GIT = re.compile(
+# `git`, optionally as a path, then its global options (group 1).
+GIT_CALL = (
     START + r"\\?[\"']?(?:[\w./~-]*/)?git[\"']?"
     r"((?:\s+(?:-C\s+\S+|-c\s+\S+"
     r"|--(?:git-dir|work-tree|namespace|super-prefix|exec-path|config-env)\s+\S+"
     r"|--[\w-]+(?:=\S+)?|-[A-Za-z]+))*)"
-    r"\s+(commit|push|tag)\b([^;&|\n]*)"
+)
+# The subcommand (group 2) and the rest of that command (group 3).
+GIT = re.compile(GIT_CALL + r"\s+(commit|push|tag)\b([^;&|\n]*)")
+# Destructive subcommands. `[^;&|\n]*` keeps a flag inside the same command.
+DESTRUCTIVE = re.compile(
+    GIT_CALL + r"\s+(?:reset\b[^;&|\n]*\s--hard\b|clean\b|restore\b"
+    r"|checkout\b[^;&|\n]*\s(?:--|\.|-f|--force)(?=\s|$)"
+    r"|switch\b[^;&|\n]*\s(?:-f|--force|--discard-changes)(?=\s|$)"
+    r"|branch\b[^;&|\n]*\s-D\b|stash\s+(?:drop|clear)\b|filter-(?:branch|repo)\b"
+    r"|reflog\s+(?:expire|delete)\b|update-ref\b[^;&|\n]*\s-d\b"
+    r"|gc\b[^;&|\n]*\s--prune\b)"
 )
 DEPLOY = re.compile(
     START + r"(?:npm\s+(?:run|run-script)\s+deploy|(?:yarn|pnpm)\s+(?:run\s+)?deploy"
@@ -113,6 +129,10 @@ def main() -> None:
             deny(
                 f"git {sub} is denied outside {SPEC}: print a suggested commit message instead."
             )
+    if DESTRUCTIVE.search(command):
+        deny(
+            "Destructive git commands are denied in every form: they discard work or history."
+        )
     if DEPLOY.search(command):
         deny("Deploy scripts publish the site and are denied. CI deploys main.")
 

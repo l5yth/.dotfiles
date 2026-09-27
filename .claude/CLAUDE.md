@@ -52,6 +52,8 @@
 - Run formatter and linter before work is done:
     Rust: rustfmt + clippy.  Zig: zig fmt.  C/C++: clang-format + clang-tidy.
     Python: black.  Ruby: rufo.  JavaScript: Biome (format + lint).
+- Markdown and JSON: the project's own formatter if it has one (for example Prettier);
+  none otherwise. Never reformat a file whose exact bytes a SPEC pins.
 - Language not listed above: ask before choosing the tool.
 
 ## Git workflow

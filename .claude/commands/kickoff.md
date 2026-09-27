@@ -49,6 +49,8 @@ When all buckets are done, have a second, fresh instance review the result again
 
     claude -p "Review this repository strictly against ~/.src/l5yth/spec/$org/$repo/ACCEPTANCE.md. List every failure." \
       --permission-mode default \
-      --allowedTools "Read" "Grep" "Glob" "Bash(git ls-files:*)" "Bash(git branch:*)" "Bash(grep:*)" "Bash(wc:*)" "Bash(ls:*)" "Bash(test:*)" "Bash(npm run:*)" "Bash(npm test:*)" "Bash(node --test:*)" \
+      --allowedTools "Read" "Grep" "Glob" "Bash(git ls-files:*)" "Bash(git branch:*)" "Bash(git status:*)" "Bash(git log:*)" "Bash(git diff:*)" "Bash(git show:*)" "Bash(git ls-tree:*)" "Bash(git rev-parse:*)" "Bash(git hash-object:*)" "Bash(grep:*)" "Bash(wc:*)" "Bash(ls:*)" "Bash(test:*)" "Bash(sha256sum:*)" "Bash(npm run:*)" "Bash(npm test:*)" "Bash(node --test:*)" \
       --disallowedTools "Edit" "Write" "NotebookEdit"
+
+This command cannot run criteria that need an interpreter or a domain tool (`python3`, `vipsheader`, a build). For those, use the subagent, told to change nothing.
 
