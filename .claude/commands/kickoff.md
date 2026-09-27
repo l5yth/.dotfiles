@@ -45,5 +45,10 @@ If the review then finds failures, fix them and print an amended message.
 
 ## Phase 5: Independent review
 
-When all buckets are done, have a second, fresh instance review the result against `ACCEPTANCE.md` (subagent or `claude -p "Review this repo strictly against ACCEPTANCE.md. List every failure."`). Report failures verbatim, fix, re-run until clean. Only then declare the project finished.
+When all buckets are done, have a second, fresh instance review the result against the spec-tree `ACCEPTANCE.md`. Report failures verbatim, fix, re-run until clean. Only then declare the project finished. Use a subagent, or this read-only command (a fresh instance does not see the spec-tree note above, so the path is explicit):
+
+    claude -p "Review this repository strictly against ~/.src/l5yth/spec/$org/$repo/ACCEPTANCE.md. List every failure." \
+      --permission-mode default \
+      --allowedTools "Read" "Grep" "Glob" "Bash(git ls-files:*)" "Bash(git branch:*)" "Bash(grep:*)" "Bash(wc:*)" "Bash(ls:*)" "Bash(test:*)" "Bash(npm run:*)" "Bash(npm test:*)" "Bash(node --test:*)" \
+      --disallowedTools "Edit" "Write" "NotebookEdit"
 

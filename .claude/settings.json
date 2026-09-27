@@ -1,16 +1,75 @@
 {
-  "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true
-  },
-  "theme": "dark-ansi",
   "env": {
     "CLAUDE_CODE_EFFORT_LEVEL": "max"
   },
   "permissions": {
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git tag:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(git restore:*)",
+      "Bash(git checkout --:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git stash drop:*)",
+      "Bash(git stash clear:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh release:*)",
+      "Bash(gh repo create:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(npm publish:*)",
+      "Bash(npm unpublish:*)",
+      "Bash(npm deprecate:*)",
+      "Bash(npm owner:*)",
+      "Bash(npm dist-tag:*)",
+      "Bash(npm login:*)",
+      "Bash(npm token:*)",
+      "Bash(yarn npm publish:*)",
+      "Bash(yarn npm login:*)",
+      "Bash(yarn npm tag:*)",
+      "Bash(cargo publish:*)",
+      "Bash(cargo owner:*)",
+      "Bash(cargo yank:*)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.npmrc)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Bash(git filter-repo:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(git reflog expire:*)",
+      "Bash(git reflog delete:*)",
+      "Bash(git update-ref -d:*)",
+      "Bash(git gc --prune:*)",
+      "Bash(gh auth token:*)",
+      "Bash(gh auth status -t:*)",
+      "Bash(gh auth status --show-token:*)",
+      "Bash(git credential:*)",
+      "Read(~/.netrc)",
+      "Read(~/.git-credentials)",
+      "Read(~/.pypirc)",
+      "Read(~/.cargo/credentials.toml)",
+      "Read(~/.docker/config.json)",
+      "Read(~/.config/containers/auth.json)",
+      "Read(~/.gem/credentials)",
+      "Bash(gem push:*)",
+      "Bash(twine upload:*)",
+      "Bash(python3 -m twine:*)",
+      "Bash(uv publish:*)",
+      "Bash(poetry publish:*)",
+      "Bash(hatch publish:*)",
+      "Bash(flit publish:*)",
+      "Bash(docker push:*)",
+      "Bash(podman push:*)",
+      "Bash(cargo login:*)"
+    ],
     "defaultMode": "bypassPermissions"
   },
-  "remoteControlAtStartup": true,
-  "tui": "default",
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -25,5 +84,13 @@
         ]
       }
     ]
-  }
+  },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
+  },
+  "tui": "default",
+  "theme": "dark-ansi",
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
 }

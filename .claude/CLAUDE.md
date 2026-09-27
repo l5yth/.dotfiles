@@ -19,6 +19,8 @@
 ## Documentation
 - 100% API-doc coverage in the language standard: rustdoc, Zig doc comments,
   Doxygen (C/C++), pdoc (Python), RDoc (Ruby), JSDoc (JS), dartdoc (Dart).
+- JS: Biome has no rule that requires JSDoc. Gate coverage with `jsdoc -X`
+  (zero undocumented) plus `tsc --noEmit --checkJs --strict`.
 - Docs complete enough to generate full API documentation from source.
 - Inline comments wherever the logic is not self-evident.
 
@@ -49,7 +51,7 @@
 ## Formatting and lint
 - Run formatter and linter before work is done:
     Rust: rustfmt + clippy.  Zig: zig fmt.  C/C++: clang-format + clang-tidy.
-    Python: black.  Ruby: rufo.
+    Python: black.  Ruby: rufo.  JavaScript: Biome (format + lint).
 - Language not listed above: ask before choosing the tool.
 
 ## Git workflow

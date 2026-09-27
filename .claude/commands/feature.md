@@ -56,5 +56,10 @@ If the review then finds failures, fix them and print an amended message.
 
 ## Phase 6: Independent review
 
-When the feature is done, have a fresh instance review against the amended `ACCEPTANCE.md` (subagent or `claude -p "Review this repo strictly against ACCEPTANCE.md, including the new feature section AND the prior criteria. List every failure."`). It must confirm both the new criteria and no regression in the old ones. Report failures verbatim, fix, re-run until clean. Only then is the feature done.
+When the feature is done, have a fresh instance review against the amended spec-tree `ACCEPTANCE.md`. It must confirm both the new criteria and no regression in the old ones. Report failures verbatim, fix, re-run until clean. Only then is the feature done. Use a subagent, or this read-only command (a fresh instance does not see the spec-tree note above, so the path is explicit):
+
+    claude -p "Review this repository strictly against ~/.src/l5yth/spec/$org/$repo/ACCEPTANCE.md, including the new feature section AND the prior criteria. List every failure." \
+      --permission-mode default \
+      --allowedTools "Read" "Grep" "Glob" "Bash(git ls-files:*)" "Bash(git branch:*)" "Bash(grep:*)" "Bash(wc:*)" "Bash(ls:*)" "Bash(test:*)" "Bash(npm run:*)" "Bash(npm test:*)" "Bash(node --test:*)" \
+      --disallowedTools "Edit" "Write" "NotebookEdit"
 
