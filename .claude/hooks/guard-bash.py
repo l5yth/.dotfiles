@@ -21,11 +21,18 @@ Denies, whatever wrapper or flag carries them:
 - publishing a package: ``rake release``, which reaches RubyGems through a
   subprocess no hook sees, and ``gem push``, ``yank``, ``owner``, ``signin``
   and ``signout``, which the deny list catches only as literal prefixes;
-- recursive removal (``rm -r`` in any spelling), which deletes trees no git
-  history restores. Plain ``rm -f`` is left alone: ``make clean`` needs it;
-- an HTTP upload (``curl``/``wget`` with ``-d``, ``-F``, ``-T``, ``--data*``,
-  ``--post-*`` or ``-X POST``/``PUT``/``PATCH``/``DELETE``), which sends file
-  contents to a third party. Downloads are untouched.
+- recursive removal, which deletes trees no git history restores: ``rm`` with a
+  recursive flag anywhere in the command, before or after the operand, and
+  ``find`` with ``-delete`` or ``-exec rm``. Plain ``rm -f`` is left alone:
+  ``make clean`` needs it and git restores what it drops;
+- an HTTP upload, which sends file contents to a third party. The sending flags
+  are read per tool because they collide: for ``curl`` ``-d``, ``-F``, ``-T``,
+  ``--data*``, ``--form*``, ``--json``, ``--upload-file`` and ``-X``/
+  ``--request`` with a writing method, including clustered short flags such as
+  ``-fsSLd``; for ``wget`` ``--post-*``, ``--body-*`` and ``--method``, because
+  wget's own ``-d``, ``-F`` and ``-T`` mean debug, force-html and timeout; for
+  ``http``/``https`` (HTTPie) a leading method word. Downloads are untouched,
+  and loopback is not egress.
 
 Everything else falls through to the normal permission rules. The hook reads
 the PreToolUse JSON on stdin and answers with a ``permissionDecision``.
@@ -66,24 +73,69 @@ DESTRUCTIVE = re.compile(
     r"|reflog\s+(?:expire|delete)\b|update-ref\b[^;&|\n]*\s-d\b"
     r"|gc\b[^;&|\n]*\s--prune\b)"
 )
+# A command name as GIT_CALL writes it: optionally backslash-escaped, quoted or
+# written as a path. The 2026-09-27 probe found `\git` and `"git"` escaping the
+# git rules; any rule that omits this prefix is escaped the same way.
+NAME = r"\\?[\"']?(?:[\w./~-]*/)?"
+# The body of one command: a line continuation is part of it, `; & |` are not.
+BODY = r"(?:[^;&|\n]|\\\n)*"
+# A word ends where a shell metacharacter or a quote does, not only at
+# whitespace: `rake release;` and `bash -c 'rake release'` are the same call.
+END = r"(?![\w:-])"
 # Publishing a package is irreversible and public. The deny list matches a
 # literal prefix, so it misses ``bundle exec gem push``, a doubled space and a
 # path; and ``rake release`` reaches RubyGems through a subprocess no hook sees.
 PUBLISH = re.compile(
-    START + r"(?:bundler?\s+exec\s+)?(?:[\w./~-]*/)?"
-    r"(?:rake\b[^;&|\n]*\srelease(?::\w+)?(?=\s|$)"
-    r"|gem\s+(?:push|yank|signin|signout|owner)\b)"
+    START
+    + r"(?:bundler?\s+exec\s+)?"
+    + NAME
+    + r"(?:rake[\"']?"
+    + BODY
+    + r"\s[\"']?release(?::\w+)?[\"']?"
+    + END
+    + r"|gem[\"']?\s+(?:push|yank|signin|signout|owner)\b)"
 )
-# Recursive removal deletes trees git cannot restore. A bare ``-f`` is not
-# matched, so ``rm -f ext/digest/Makefile`` and ``make clean`` still run.
-RECURSIVE_RM = re.compile(START + r"(?:[\w./~-]*/)?rm\s+(?:-\S+\s+)*-\S*[rR]\S*(?=\s)")
-# An HTTP upload publishes file contents to a third party. Only the sending
-# flags match, so fetching a header, a tarball or a page still works.
+# Recursive removal deletes trees git cannot restore. The flag may follow the
+# operand (GNU `rm` permutes), so the whole command body is searched. A bare
+# ``-f`` is not matched: ``make clean`` needs it and git restores what it drops.
+RECURSIVE_RM = re.compile(
+    START
+    + NAME
+    + r"rm[\"']?"
+    + BODY
+    + r"\s(?:--recursive\b|-[a-zA-Z]*[rR][a-zA-Z]*(?=\s|$))"
+)
+# `find` reaches the same destruction without naming `rm` at a command start.
+FIND_DELETE = re.compile(
+    START + NAME + r"find\b" + BODY + r"\s(?:-delete\b|-exec\s+" + NAME + r"rm\b)"
+)
+# An HTTP upload publishes file contents to a third party. The sending flags are
+# per tool, because they collide: ``-T``, ``-d`` and ``-F`` upload for curl but
+# mean timeout, debug and force-html for wget. Downloads stay untouched.
+CURL_SEND = (
+    r"(?:-[a-zA-Z]*[dFT](?=[\s=]|$)|--(?:data(?:-[a-z]+)?|form(?:-string)?"
+    r"|upload-file|json)\b|(?:-X|--request)\s*[\"']?(?:POST|PUT|PATCH|DELETE)\b)"
+)
+WGET_SEND = (
+    r"(?:--(?:post|body)-(?:data|file)\b"
+    r"|--method[=\s]\s*[\"']?(?:POST|PUT|PATCH|DELETE)\b)"
+)
 EGRESS = re.compile(
-    START + r"(?:[\w./~-]*/)?(?:curl|wget|httpie|http)\b[^;&|\n]*"
-    r"(?:\s(?:-d|--data(?:-\S+)?|-F|--form|-T|--upload-file|--post-\S+)\b"
-    r"|\s-X\s*(?:POST|PUT|PATCH|DELETE)\b)"
+    START
+    + NAME
+    + r"(?:(?:curl|httpie)[\"']?"
+    + BODY
+    + r"\s"
+    + CURL_SEND
+    + r"|wget[\"']?"
+    + BODY
+    + r"\s"
+    + WGET_SEND
+    + r"|(?:https?|httpie)[\"']?\s+[\"']?(?:POST|PUT|PATCH|DELETE)\b)"
 )
+# Loopback is not egress: nothing leaves the machine, and ACCEPTANCE files in
+# the spec tree probe local servers with `-X POST`.
+LOOPBACK = re.compile(r"127\.0\.0\.1|\blocalhost\b|\[::1\]|0\.0\.0\.0")
 DEPLOY = re.compile(
     START + r"(?:npm\s+(?:run|run-script)\s+deploy|(?:yarn|pnpm)\s+(?:run\s+)?deploy"
     r"|(?:npx\s+(?:-\S+\s+)*)?(?:[\w./~-]*/)?gh-pages)\b"
@@ -164,9 +216,9 @@ def main() -> None:
             "Publishing is denied: rake release, gem push, gem yank and gem owner "
             "change a public package irreversibly."
         )
-    if RECURSIVE_RM.search(command):
-        deny("Recursive rm is denied: it deletes trees no git history can restore.")
-    if EGRESS.search(command):
+    if RECURSIVE_RM.search(command) or FIND_DELETE.search(command):
+        deny("Recursive delete is denied: it removes trees no git history restores.")
+    if EGRESS.search(command) and not LOOPBACK.search(command):
         deny("HTTP upload is denied: it sends file contents to a third party.")
     if DEPLOY.search(command):
         deny("Deploy scripts publish the site and are denied. CI deploys main.")
