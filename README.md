@@ -8,7 +8,8 @@ Arch Linux dotfiles for a Dracula-themed i3 desktop.
 sudo pacman -S base base-devel linux linux-firmware dhcpcd iwd curl unzip zsh vim xorg xorg-xinit i3 dex man-pages man-db dmenu polkit xdg-utils rustup python git rsync zoxide fzf tmux zsh-syntax-highlighting openssh keychain pass pinentry ruby btop terminator cronie zsh-autosuggestions nmap ufw zsh-completions
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
-sudo systemctl enable --now dhcpcd iwd cronie ufw
+sudo systemctl enable --now dhcpcd iwd cronie ufw ntp
+sudo timedatectl set-ntp true
 mkdir -p ~/.src/l5yth
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.src/l5yth/.dotfiles
 ~/.src/l5yth/.dotfiles/install.sh
