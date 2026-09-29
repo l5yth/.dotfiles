@@ -17,7 +17,15 @@ Denies, whatever wrapper or flag carries them:
   ``clean``, ``restore``, ``checkout`` with ``--``, ``.`` or ``-f``, ``switch``
   with ``-f`` or ``--discard-changes``, ``branch -D``, ``stash drop`` and
   ``clear``, ``filter-branch``, ``filter-repo``, ``reflog expire`` and
-  ``delete``, ``update-ref -d`` and ``gc --prune``.
+  ``delete``, ``update-ref -d`` and ``gc --prune``;
+- publishing a package: ``rake release``, which reaches RubyGems through a
+  subprocess no hook sees, and ``gem push``, ``yank``, ``owner``, ``signin``
+  and ``signout``, which the deny list catches only as literal prefixes;
+- recursive removal (``rm -r`` in any spelling), which deletes trees no git
+  history restores. Plain ``rm -f`` is left alone: ``make clean`` needs it;
+- an HTTP upload (``curl``/``wget`` with ``-d``, ``-F``, ``-T``, ``--data*``,
+  ``--post-*`` or ``-X POST``/``PUT``/``PATCH``/``DELETE``), which sends file
+  contents to a third party. Downloads are untouched.
 
 Everything else falls through to the normal permission rules. The hook reads
 the PreToolUse JSON on stdin and answers with a ``permissionDecision``.
@@ -57,6 +65,24 @@ DESTRUCTIVE = re.compile(
     r"|branch\b[^;&|\n]*\s-D\b|stash\s+(?:drop|clear)\b|filter-(?:branch|repo)\b"
     r"|reflog\s+(?:expire|delete)\b|update-ref\b[^;&|\n]*\s-d\b"
     r"|gc\b[^;&|\n]*\s--prune\b)"
+)
+# Publishing a package is irreversible and public. The deny list matches a
+# literal prefix, so it misses ``bundle exec gem push``, a doubled space and a
+# path; and ``rake release`` reaches RubyGems through a subprocess no hook sees.
+PUBLISH = re.compile(
+    START + r"(?:bundler?\s+exec\s+)?(?:[\w./~-]*/)?"
+    r"(?:rake\b[^;&|\n]*\srelease(?::\w+)?(?=\s|$)"
+    r"|gem\s+(?:push|yank|signin|signout|owner)\b)"
+)
+# Recursive removal deletes trees git cannot restore. A bare ``-f`` is not
+# matched, so ``rm -f ext/digest/Makefile`` and ``make clean`` still run.
+RECURSIVE_RM = re.compile(START + r"(?:[\w./~-]*/)?rm\s+(?:-\S+\s+)*-\S*[rR]\S*(?=\s)")
+# An HTTP upload publishes file contents to a third party. Only the sending
+# flags match, so fetching a header, a tarball or a page still works.
+EGRESS = re.compile(
+    START + r"(?:[\w./~-]*/)?(?:curl|wget|httpie|http)\b[^;&|\n]*"
+    r"(?:\s(?:-d|--data(?:-\S+)?|-F|--form|-T|--upload-file|--post-\S+)\b"
+    r"|\s-X\s*(?:POST|PUT|PATCH|DELETE)\b)"
 )
 DEPLOY = re.compile(
     START + r"(?:npm\s+(?:run|run-script)\s+deploy|(?:yarn|pnpm)\s+(?:run\s+)?deploy"
@@ -133,6 +159,15 @@ def main() -> None:
         deny(
             "Destructive git commands are denied in every form: they discard work or history."
         )
+    if PUBLISH.search(command):
+        deny(
+            "Publishing is denied: rake release, gem push, gem yank and gem owner "
+            "change a public package irreversibly."
+        )
+    if RECURSIVE_RM.search(command):
+        deny("Recursive rm is denied: it deletes trees no git history can restore.")
+    if EGRESS.search(command):
+        deny("HTTP upload is denied: it sends file contents to a third party.")
     if DEPLOY.search(command):
         deny("Deploy scripts publish the site and are denied. CI deploys main.")
 
