@@ -50,10 +50,10 @@ pikaur -S claude-code
 ## Desktop
 
 ```bash
-sudo pacman -S syncthing hplip cups cups-pdf brightnessctl autorandr bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger papirus-icon-theme scrot okular shotwell caja engrampa meld code obsidian signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge protonmail-bridge-core eom libreoffice-fresh vlc pavucontrol pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk mate-utils
+sudo pacman -S syncthing hplip cups cups-pdf brightnessctl autorandr bluez bluez-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber alsa-utils ranger papirus-icon-theme scrot atril shotwell caja engrampa meld code obsidian signal-desktop element-desktop speedcrunch firefox thunderbird protonmail-bridge protonmail-bridge-core eom libreoffice-fresh vlc pavucontrol pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk mate-utils
 sudo systemctl enable --now bluetooth syncthing@$USER
 systemctl --user enable --now pipewire wireplumber
-pikaur -S i3lock-color xidlehook xrandr-invert-colors brave-bin enpass-bin sublime-text-4 pinta
+pikaur -S i3lock-color xidlehook xrandr-invert-colors brave-bin enpass-x11-bin sublime-text-4 pinta
 ( crontab -l 2>/dev/null | grep -vF 'wttr-fetch' ; echo "*/15 * * * * $HOME/.config/i3status/wttr-fetch" ) | crontab -
 ```
 
