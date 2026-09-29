@@ -57,6 +57,9 @@
 - Language not listed above: ask before choosing the tool.
 
 ## Git workflow
+- Before starting, `git fetch` the project repository. A clean `main` that is only behind
+  `origin/main` fast-forwards (`git merge --ff-only origin/main`); report it. Diverged or
+  dirty: stop and ask.
 - Create feature branches. Name them l5y-$area-$scope.
 - Never push. Never open pull requests.
 - Never commit. On finishing a unit of work, print a suggested commit message unprompted.
