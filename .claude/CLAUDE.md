@@ -67,3 +67,25 @@
   starting (see §Specifications), then at the end of a unit of work commit the spec
   amendments and push them to `main`. Pull `--ff-only` again immediately before that push —
   the remote can move while the work is in progress. No feature branch, no mid-task pushes.
+- Sessions share the one spec clone. Before the first write to an entry, run
+  `git -C ~/.src/l5yth/spec status --porcelain -- $org/$repo/`; a change this task did not
+  make means another task owns the entry: stop and ask. Commit only that entry:
+  `git -C ~/.src/l5yth/spec add -- $org/$repo/`, then
+  `git -C ~/.src/l5yth/spec commit -m "<message>" -- $org/$repo/`.
+
+### Worktrees
+- One task, one branch, one worktree, one session: start it from the primary clone
+  `~/.src/$org/$repo` with `claude -w <branch>`. The worktree hook puts it at
+  `~/.src/.wt/$org/$repo/<branch>`, branched from the remote default branch. The spec
+  clone takes no worktrees.
+- The fetch and fast-forward rule above runs against the primary clone, not the worktree.
+  Its state is reported and never blocks a worktree session. Do no task work in the
+  primary clone.
+- Pick the spec entry `$org/$repo` from the primary clone's path below `~/.src`,
+  never from the current directory.
+- Inside a worktree, a criterion that names `~/.src/$org/$repo` means the worktree root.
+- Reviewers run inside the task worktree, never with `isolation: worktree`: those
+  worktrees start from the remote default branch and hold none of the uncommitted work.
+- No `git stash`: every worktree of a repository shares one stash.
+- Finished worktrees: `python3 ~/.claude/hooks/worktree.py sweep` removes each one that
+  is clean and fully pushed, and keeps the rest with the reason.

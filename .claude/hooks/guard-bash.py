@@ -18,6 +18,12 @@ Denies, whatever wrapper or flag carries them:
   with ``-f`` or ``--discard-changes``, ``branch -D``, ``stash drop`` and
   ``clear``, ``filter-branch``, ``filter-repo``, ``reflog expire`` and
   ``delete``, ``update-ref -d`` and ``gc --prune``;
+- the three the worktree workflow adds (SPEC WT5): ``git worktree remove`` with
+  ``-f`` or ``--force``, which deletes uncommitted and untracked work; a force
+  delete of a branch spelled other than ``-D`` (``--delete --force``, ``-d -f``,
+  ``-df``), which is ``-D`` by another name; and ``git stash`` with any
+  subcommand but ``list`` and ``show``, because every worktree of a repository
+  shares one stash;
 - publishing a package: ``rake release``, which reaches RubyGems through a
   subprocess no hook sees, and ``gem push``, ``yank``, ``owner``, ``signin``
   and ``signout``, which the deny list catches only as literal prefixes;
@@ -73,6 +79,30 @@ DESTRUCTIVE = re.compile(
     r"|reflog\s+(?:expire|delete)\b|update-ref\b[^;&|\n]*\s-d\b"
     r"|gc\b[^;&|\n]*\s--prune\b)"
 )
+# A flag ends where a word character or a hyphen does not follow, so `-f;` and
+# `-f` at the end of the line count while `--forced` and `--format` do not.
+FLAG_END = r"(?![\w-])"
+# A forced `worktree remove` deletes the uncommitted and untracked work a plain
+# one refuses to touch (SPEC WT5). The flag may follow the operand.
+WORKTREE_FORCE = re.compile(
+    GIT_CALL
+    + r"\s+worktree\s+remove\b[^;&|\n]*\s(?:--force|-[a-zA-Z]*f[a-zA-Z]*)"
+    + FLAG_END
+)
+# A delete flag and a force flag anywhere in one `git branch` call, in either
+# order or clustered (`-df`, `-fd`), is `branch -D` by another name.
+BRANCH_FORCE_DELETE = re.compile(
+    GIT_CALL
+    + r"\s+branch\b(?=[^;&|\n]*\s(?:--delete|-[a-zA-Z]*d[a-zA-Z]*)"
+    + FLAG_END
+    + r")(?=[^;&|\n]*\s(?:--force|-[a-zA-Z]*f[a-zA-Z]*)"
+    + FLAG_END
+    + r")"
+)
+# Every worktree of a repository shares one stash, so `pop` in one session can
+# land another session's entry; `list` and `show` only read it. The lookahead
+# takes spaces and tabs only: a newline must not pass for the subcommand.
+STASH = re.compile(GIT_CALL + r"\s+stash\b(?![ \t]+(?:list|show)" + FLAG_END + r")")
 # A command name as GIT_CALL writes it: optionally backslash-escaped, quoted or
 # written as a path. The 2026-09-27 probe found `\git` and `"git"` escaping the
 # git rules; any rule that omits this prefix is escaped the same way.
@@ -210,6 +240,20 @@ def main() -> None:
     if DESTRUCTIVE.search(command):
         deny(
             "Destructive git commands are denied in every form: they discard work or history."
+        )
+    if WORKTREE_FORCE.search(command):
+        deny(
+            "git worktree remove --force is denied: it deletes uncommitted and untracked "
+            "work. Check git status there and run it yourself."
+        )
+    if BRANCH_FORCE_DELETE.search(command):
+        deny(
+            "Force-deleting a branch is denied in every spelling: it is git branch -D."
+        )
+    if STASH.search(command):
+        deny(
+            "git stash is denied except list and show: every worktree of a repository "
+            "shares one stash."
         )
     if PUBLISH.search(command):
         deny(

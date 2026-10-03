@@ -115,7 +115,9 @@ class GuardTest(unittest.TestCase):
         (PROJECT, "git mv a b && git rm --cached c", "pass"),
         (PROJECT, "git log --grep=clean", "pass"),
         (PROJECT, "git status && git log --oneline -3", "pass"),
-        (PROJECT, "git stash push -m wip", "pass"),
+        # A pass until 2026-10-03, when the worktree workflow (SPEC WT5) denied
+        # every stash subcommand but list and show.
+        (PROJECT, "git stash push -m wip", "deny"),
         (PROJECT, "git log --grep=push", "pass"),
         (PROJECT, 'grep -n "git push" README.md', "pass"),
         (PROJECT, 'echo "git commit"', "pass"),
@@ -222,6 +224,67 @@ class GuardTest(unittest.TestCase):
         (PROJECT, "curl -s -o /dev/null -X POST http://127.0.0.1:8091/", "pass"),
         (PROJECT, "curl -X POST http://localhost:41447/api/messages -d '[]'", "pass"),
         (PROJECT, "curl -X POST http://[::1]:8080/ -d x", "pass"),
+        # The worktree workflow (SPEC WT5): a forced worktree removal, with the
+        # flag before or after the operand, behind wrappers and quoting.
+        (PROJECT, "git worktree remove --force /x", "deny"),
+        (PROJECT, "git worktree remove -f /x", "deny"),
+        (PROJECT, "git worktree remove /x --force", "deny"),
+        (PROJECT, "git worktree remove /x -f", "deny"),
+        (PROJECT, "git -C . worktree remove -f -f /x", "deny"),
+        (PROJECT, "env git worktree remove --force /x", "deny"),
+        (PROJECT, 'bash -c "git worktree remove -f /x"', "deny"),
+        (PROJECT, "\\git worktree remove -f /x", "deny"),
+        (PROJECT, '"git" worktree remove --force /x', "deny"),
+        (PROJECT, "git worktree remove --force /x;", "deny"),
+        (PROJECT, "cd /r && git worktree remove -f ../wt", "deny"),
+        (PROJECT, "x=$(git worktree remove --force /x)", "deny"),
+        (PROJECT, "git worktree remove /x", "pass"),
+        (PROJECT, "git worktree prune", "pass"),
+        (PROJECT, "git worktree list --porcelain", "pass"),
+        (PROJECT, "git worktree lock /x", "pass"),
+        (PROJECT, "git worktree add -b l5y-a-b /x origin/main", "pass"),
+        (PROJECT, 'echo "git worktree remove --force /x"', "pass"),
+        # A force delete in every spelling but -D, which DESTRUCTIVE catches.
+        (PROJECT, "git branch --delete --force t", "deny"),
+        (PROJECT, "git branch -d -f t", "deny"),
+        (PROJECT, "git branch -df t", "deny"),
+        (PROJECT, "git branch -fd t", "deny"),
+        (PROJECT, "git branch --force --delete t", "deny"),
+        (PROJECT, "git -C . branch -d --force t", "deny"),
+        (PROJECT, "git branch --delete -f t", "deny"),
+        (PROJECT, "git branch -d t -f", "deny"),
+        (PROJECT, "git branch -df t;", "deny"),
+        (PROJECT, "sudo git branch -df t", "deny"),
+        (PROJECT, "\\git branch -df t", "deny"),
+        (PROJECT, "git branch -f t main", "pass"),
+        (PROJECT, "git branch -dr origin/t", "pass"),
+        (PROJECT, "git branch --list --format=x", "pass"),
+        (PROJECT, "git branch -m old new", "pass"),
+        (PROJECT, "git branch my-dev", "pass"),
+        # Every stash subcommand but list and show, bare stash included.
+        (PROJECT, "git stash", "deny"),
+        (PROJECT, "git stash pop", "deny"),
+        (PROJECT, "git stash apply", "deny"),
+        (PROJECT, "git stash apply stash@{1}", "deny"),
+        (PROJECT, "git stash -u", "deny"),
+        (PROJECT, "git stash save wip", "deny"),
+        (PROJECT, "git stash branch b", "deny"),
+        (PROJECT, "git stash create", "deny"),
+        (PROJECT, "git stash store abc", "deny"),
+        (PROJECT, "git stash;", "deny"),
+        (PROJECT, "cd x && git stash && git pull", "deny"),
+        (PROJECT, '"git" stash pop', "deny"),
+        (PROJECT, "\\git stash", "deny"),
+        (PROJECT, "git -C . stash pop", "deny"),
+        (PROJECT, "bash -c 'git stash'", "deny"),
+        (PROJECT, "git stash\nlist", "deny"),
+        (PROJECT, "git stash listing", "deny"),
+        (PROJECT, "git stash list", "pass"),
+        (PROJECT, "git stash show -p", "pass"),
+        (PROJECT, "git stash show; git status", "pass"),
+        (PROJECT, "git stash  list", "pass"),
+        (PROJECT, "git log --grep=stash", "pass"),
+        (PROJECT, 'grep -n "git stash pop" notes.md', "pass"),
         (PROJECT, "", "pass"),
     ]
 
@@ -272,6 +335,30 @@ class GuardTest(unittest.TestCase):
             ("rake release", "Publishing"),
             ("rm -rf build", "Recursive"),
             ("curl -X POST https://example.com -d @x", "upload"),
+        ):
+            with self.subTest(command=command):
+                event = {
+                    "tool_name": "Bash",
+                    "tool_input": {"command": command},
+                    "cwd": PROJECT,
+                }
+                out = io.StringIO()
+                with mock.patch(
+                    "sys.stdin", io.StringIO(json.dumps(event))
+                ), redirect_stdout(out):
+                    with self.assertRaises(SystemExit):
+                        guard.main()
+                reason = json.loads(out.getvalue())["hookSpecificOutput"][
+                    "permissionDecisionReason"
+                ]
+                self.assertIn(word, reason)
+
+    def test_worktree_rules_name_themselves(self):
+        """Each rule added on 2026-10-03 (SPEC WT5) explains itself in the reason."""
+        for command, word in (
+            ("git worktree remove --force /x", "worktree remove"),
+            ("git branch -df t", "Force-deleting"),
+            ("git stash pop", "stash"),
         ):
             with self.subTest(command=command):
                 event = {
