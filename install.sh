@@ -138,6 +138,14 @@ if [ -d "$HOST_DIR" ]; then
 		"$HOST_DIR"/ "$HOME"/
 fi
 
+# The overlay ships one file each into ~/.gnupg and ~/.ssh, and rsync -a gives every file and
+# folder it writes the mode it has in the clone. Git records no folder modes and only the
+# executable bit, so the clone holds 755 folders and 644 files, and every run reopened what
+# README §SSH-Keys and §Proton Mail close; gpg then warns about an unsafe homedir. This runs
+# after the host pass, which is a second rsync and would reopen them again.
+chmod 700 "$HOME/.gnupg" "$HOME/.ssh"
+chmod 600 "$HOME/.gnupg/gpg-agent.conf" "$HOME/.ssh/authorized_keys"
+
 if [ -z "$(ls -A "$BACKUP")" ]; then
 	echo "installed, no conflicts"
 else
