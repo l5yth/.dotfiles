@@ -33,7 +33,7 @@ Append this as a regression line to `ACCEPTANCE.md`, matching the existing forma
 
 Make the smallest change that addresses the root cause. No opportunistic refactors, no unrelated cleanup; those drift the change and widen the regression surface.
 
-Name the blast radius: every other caller, module, or behavior that touches the code you are changing. Flag any new risky action the fix introduces and whether an existing hook covers it. Apply nothing destructive until I approve.
+Name the blast radius: every other caller, module, or behavior that touches the code you are changing. Flag any new risky action the fix introduces and whether an existing deny rule covers it. Apply nothing destructive until I approve.
 
 ## Phase 4: Prove no regression
 

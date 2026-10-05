@@ -34,7 +34,7 @@ Add one explicit regression line: the existing acceptance criteria must still pa
 
 Do not re-audit the whole project. Report only what this feature changes:
 
-- Any new risky action it introduces (new network egress, new credentials, new destructive path, new dependency or publish step) and whether an existing hook already covers it
+- Any new risky action it introduces (new network egress, new credentials, new destructive path, new dependency or publish step) and whether an existing deny rule already covers it
 - For each gap, give the file, the problem, and the exact fix (full text or diff)
 
 Apply nothing until I approve.
