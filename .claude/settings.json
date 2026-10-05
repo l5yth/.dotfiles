@@ -71,7 +71,10 @@
       "Bash(flit publish:*)",
       "Bash(docker push:*)",
       "Bash(podman push:*)",
-      "Bash(cargo login:*)"
+      "Bash(cargo login:*)",
+      "Bash(rm -r:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)"
     ],
     "defaultMode": "bypassPermissions"
   },

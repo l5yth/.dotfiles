@@ -146,6 +146,14 @@ fi
 chmod 700 "$HOME/.gnupg" "$HOME/.ssh"
 chmod 600 "$HOME/.gnupg/gpg-agent.conf" "$HOME/.ssh/authorized_keys"
 
+# Retired Bash guard files (spec/l5yth/.dotfiles SPEC NG3). The rsync is additive, so a file
+# the repo stops shipping stays in $HOME on every machine that once installed it. These are
+# deleted by exact path: guard-bash.py and test_guard_bash.py shipped until da56a58, and
+# deny-risky.rb was never tracked here but turned up on a machine all the same. This runs
+# after both passes, so an untracked copy left in a clone cannot come back with them.
+rm -f "$HOME/.claude/hooks/guard-bash.py" "$HOME/.claude/hooks/test_guard_bash.py" \
+	"$HOME/.claude/hooks/deny-risky.rb"
+
 if [ -z "$(ls -A "$BACKUP")" ]; then
 	echo "installed, no conflicts"
 else
