@@ -26,7 +26,7 @@ Read `CLAUDE.md`, my knowledge base, my installed skills, and my hooks/guardrail
 2. The problem
 3. The exact fix (full text or diff, not a description)
 
-Separately, flag every risky action (destructive git, file deletion, network egress, credentials, package publishing) that needs a deny or confirmation hook so I cannot bypass it by accident. Apply nothing until I approve.
+Separately, flag every risky action (destructive git, file deletion, network egress, credentials, package publishing) that needs a deny rule so I cannot bypass it by accident. Apply nothing until I approve.
 
 ## Phase 3: Build in buckets
 
