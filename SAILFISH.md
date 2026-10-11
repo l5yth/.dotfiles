@@ -141,6 +141,15 @@ pip install -U pip cbor2 black pytest meshtastic meshcore-cli rns nomadnet
 
 `python` is Python 2.7. Use `python3`.
 
+```bash
+devel-su ssu ar openrepos-jimknopfiot https://sailfish.openrepos.net/JimKnopfIoT/personal/main
+devel-su ssu ur
+devel-su zypper ref
+devel-su zypper in -y harbour-xmatic
+```
+
+`harbour-xmatic` is a Matrix client. The homeserver needs simplified sliding sync (MSC4186).
+
 ## SSH-Keys
 
 Optional. Same as README.md, plus `keychain` from Chum.
