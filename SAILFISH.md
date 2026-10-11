@@ -247,7 +247,32 @@ devel-su zypper in -y harbour-file-browser
 
 Hold Volume Up and Volume Down together for about two seconds. Files land in `~/Pictures/Screenshots`.
 
+## Developer mode off
+
+Keep the Terminal app before switching Developer mode off.
+
+```bash
+devel-su zypper in -f fingerterm
+zypper se -i fingerterm   # i+ means it stays
+```
+
+Settings > Developer tools > Developer mode: off. The Terminal stays; `devel-su` and SSH go.
+
 ## Updates
+
+Needs Developer mode for `devel-su`.
+
+```bash
+devel-su zypper ref
+devel-su zypper up
+git -C ~/.src/l5yth/.dotfiles pull --ff-only
+~/.src/l5yth/.dotfiles/install.sh
+rustup update
+~/.venv/bin/pip install -U pip cbor2 black pytest meshtastic meshcore-cli rns nomadnet
+nvm install lts/krypton
+```
+
+Sailfish OS releases: Settings > Sailfish OS updates.
 
 zypper tracks none of these. Bump versions, tags and hashes above, then rerun the block.
 
@@ -255,6 +280,5 @@ zypper tracks none of these. Bump versions, tags and hashes above, then rerun th
 - zsh-syntax-highlighting 0.8.0, zsh-autosuggestions v0.7.1, zsh-completions 0.36.0: remove the directory, clone the new tag
 - nvm v0.40.6
 - harbour-syncthing 0.1.3
-- Rust: `rustup update`
 
 Pinned on 2026-10-09.
