@@ -169,6 +169,48 @@ devel-su zypper ref
 devel-su zypper in harbour-syncthing
 -->
 
+Only while charging, optional. Paste this block whole.
+
+```bash
+mkdir -p ~/.config/systemd/user
+cat > ~/.bin/syncthing-charger <<'EOF'
+#!/bin/sh
+apply() {
+	case "$1" in
+	*"'on'"*) systemctl --user start syncthing ;;
+	*) systemctl --user stop syncthing ;;
+	esac
+}
+apply "$(gdbus call --system --dest com.nokia.mce --object-path /com/nokia/mce/request --method com.nokia.mce.request.get_charger_state)"
+gdbus monitor --system --dest com.nokia.mce --object-path /com/nokia/mce/signal |
+	while read -r line; do
+		case "$line" in *charger_state_ind*) apply "$line" ;; esac
+	done
+EOF
+cat > ~/.config/systemd/user/syncthing-charger.service <<'EOF'
+[Unit]
+Description=Syncthing only while a charger is connected
+
+[Service]
+ExecStart=%h/.bin/syncthing-charger
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+chmod 755 ~/.bin/syncthing-charger
+```
+
+```bash
+systemctl --user daemon-reload
+systemctl --user disable syncthing
+systemctl --user enable --now syncthing-charger
+systemctl --user is-active syncthing   # charging: active, unplugged: inactive
+```
+
+`~/.bin/syncthing-charger` and its unit are local to the phone. `install.sh` leaves them alone.
+
 On the workstation:
 
 ```bash
