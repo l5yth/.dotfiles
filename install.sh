@@ -14,15 +14,17 @@ fi
 # submodule checkout and hooksPath wiring below both need it, so bail with a clear message
 # rather than dying at the first git call. For a tarball copy (no $SRC/.git) it is optional
 # and its only use is the best-effort spec clone (SPEC SR4), which warns and continues.
+# Both tests use -e: in a worktree .git is a pointer file, not a folder, and -d took a
+# worktree for a tarball, skipping its submodules and hooks (SPEC IW2).
 if ! command -v git >/dev/null; then
-	if [ -d "$SRC/.git" ]; then
+	if [ -e "$SRC/.git" ]; then
 		echo "install.sh: git required (this is a clone; submodules and hooks need it)" >&2
 		exit 1
 	fi
 	echo "install.sh: git not found, skipping spec clone" >&2
 fi
 
-if [ -d "$SRC/.git" ]; then
+if [ -e "$SRC/.git" ]; then
 	git -C "$SRC" submodule update --init --recursive
 	# Git hooks in .git/hooks/ aren't version-controlled; point at the tracked guard.
 	git -C "$SRC" config core.hooksPath .githooks
@@ -92,9 +94,18 @@ rmdir "$HOME"/.vim/after/syntax "$HOME"/.vim/after/plugin "$HOME"/.vim/after 2>/
 # copy in the working tree would rsync over a machine's live identity with no trace of it.
 # These two excludes are the deploy-time half of that guard; .gitignore is the commit-time
 # half. Anchored for the reason given above.
+# '.git' has no trailing slash: with one, rsync matches only a folder, and the .git of a
+# worktree root and of every submodule (.zsh/pure/.git) is a pointer file, so both deployed.
+# A worktree's pointer holds an absolute path, which made git take all of $HOME for a
+# checkout of that branch. Unanchored, so the nested submodule pointer matches too (SPEC IW1).
+# --checksum, on both passes: by default rsync compares size and mtime, git stores no mtimes,
+# and so every file of a fresh worktree or clone looked changed and --backup kept an identical
+# copy of each. Compared by content, only a file that differs is replaced and backed up; an
+# identical one just gets its mtime and mode set in place (SPEC IW3).
 rsync -avh \
+	--checksum \
 	--backup --backup-dir="$BACKUP" \
-	--exclude='.git/' \
+	--exclude='.git' \
 	--exclude='.github/' \
 	--exclude='.githooks/' \
 	--exclude='.gitignore' \
@@ -133,7 +144,9 @@ HOST_DIR="$SRC/hosts/$(uname -n)"
 if [ -d "$HOST_DIR" ]; then
 	echo
 	echo "== host overlay: hosts/$(uname -n) =="
+	# --checksum for the reason given at the first pass.
 	rsync -avh \
+		--checksum \
 		--backup --backup-dir="$BACKUP" \
 		"$HOST_DIR"/ "$HOME"/
 fi
