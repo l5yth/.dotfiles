@@ -60,6 +60,11 @@ done
 BACKUP=$(mktemp -d "$HOME/.dotfiles-backup-XXXXXX")
 trap 'rmdir "$BACKUP" 2>/dev/null || true' EXIT
 
+# $HOME's own mode, read before the first rsync changes it and put back after both passes.
+# -L reads the directory a symlinked $HOME points at: chmod follows the link, so the link's
+# own 777 would otherwise be written onto that directory.
+HOME_MODE=$(stat -L -c %a "$HOME")
+
 # One-time migration (#49): the vendored Dracula vim theme (dracula/vim) moved all
 # per-language highlight links into colors/dracula_base.vim and dropped its
 # after/syntax/*.vim + after/plugin/dracula.vim overrides, which called the
@@ -102,6 +107,7 @@ rsync -avh \
 	--exclude='/CLAUDE.md' \
 	--exclude='/LICENSE' \
 	--exclude='README.md' \
+	--exclude='SAILFISH.md' \
 	--exclude='SPEC.md' \
 	--exclude='ACCEPTANCE.md' \
 	--exclude='install.sh' \
@@ -145,6 +151,10 @@ fi
 # after the host pass, which is a second rsync and would reopen them again.
 chmod 700 "$HOME/.gnupg" "$HOME/.ssh"
 chmod 600 "$HOME/.gnupg/gpg-agent.conf" "$HOME/.ssh/authorized_keys"
+# rsync -a also gives $HOME itself the mode of the clone root, so every run reset it: a 700
+# home became 755, and a clone made under umask 002 (Sailfish's default) left it 775, which
+# sshd refuses for authorized_keys. Put back the mode read before the first pass.
+chmod "$HOME_MODE" "$HOME"
 
 if [ -z "$(ls -A "$BACKUP")" ]; then
 	echo "installed, no conflicts"

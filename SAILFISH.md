@@ -2,6 +2,8 @@
 
 Sailfish OS 5.2 setup for the Jolla Phone (2026), on top of these dotfiles.
 
+Run one line at a time.
+
 ## Developer mode
 
 1. Settings > Device lock: set a security code.
@@ -35,7 +37,7 @@ devel-su pkcon install zypper
 ## Dotfiles
 
 ```bash
-devel-su zypper in git rsync gnu-bash vim-enhanced   # accept: deinstall busybox-symlinks-bash
+devel-su zypper in -y git rsync gnu-bash vim-enhanced -- -busybox-symlinks-bash
 mkdir -p ~/.src/l5yth
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.src/l5yth/.dotfiles
 ~/.src/l5yth/.dotfiles/install.sh
@@ -60,7 +62,7 @@ The RPM name changes with rebuilds. List the directory when the download fails.
 ## Packages
 
 ```bash
-devel-su zypper in zsh gnu-coreutils tmux mce-tools   # accept: deinstall busybox-symlinks-coreutils
+devel-su zypper in -y zsh gnu-coreutils tmux mce-tools -- -busybox-symlinks-coreutils
 zypper se zsh                                         # search
 ```
 
@@ -86,6 +88,8 @@ devel-su usermod -s "$(command -v zsh)" defaultuser
 
 The dotfiles expect the Arch package paths `/usr/share/fzf` and `/usr/share/zsh/plugins`.
 
+Paste this block whole.
+
 ```bash
 mkdir -p ~/.local/bin && cd "$(mktemp -d)"
 curl -fLO https://github.com/junegunn/fzf/releases/download/v0.74.4/fzf-0.74.4-linux_arm64.tar.gz
@@ -102,6 +106,7 @@ devel-su install -Dm644 "$PWD/key-bindings.zsh" /usr/share/fzf/key-bindings.zsh
 
 ```bash
 devel-su
+umask 022
 mkdir -p /usr/share/zsh/plugins && cd /usr/share/zsh/plugins
 git clone --depth=1 --branch 0.8.0  https://github.com/zsh-users/zsh-syntax-highlighting
 git clone --depth=1 --branch v0.7.1 https://github.com/zsh-users/zsh-autosuggestions
@@ -120,6 +125,21 @@ node -v
 ```
 
 nvm needs GNU `ls` from `gnu-coreutils`. Official Node builds need glibc >= 2.28 and libstdc++ >= 6.0.28.
+
+```bash
+devel-su zypper in -y gcc gcc-c++
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+rustc -V && cargo -V
+```
+
+```bash
+devel-su zypper in -y python3-base
+python3 -m venv ~/.venv
+source ~/.venv/bin/activate
+pip install -U pip cbor2 black pytest meshtastic meshcore-cli rns nomadnet
+```
+
+`python` is Python 2.7. Use `python3`.
 
 ## SSH-Keys
 
@@ -172,5 +192,6 @@ zypper tracks none of these. Bump versions, tags and hashes above, then rerun th
 - zsh-syntax-highlighting 0.8.0, zsh-autosuggestions v0.7.1, zsh-completions 0.36.0: remove the directory, clone the new tag
 - nvm v0.40.6
 - harbour-syncthing 0.1.3
+- Rust: `rustup update`
 
 Pinned on 2026-10-09.
