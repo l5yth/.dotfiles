@@ -37,7 +37,7 @@ devel-su pkcon install zypper
 ## Dotfiles
 
 ```bash
-devel-su zypper in -y git rsync gnu-bash vim-enhanced -- -busybox-symlinks-bash
+devel-su zypper in -y git rsync gnu-bash vim-enhanced -busybox-symlinks-bash
 mkdir -p ~/.src/l5yth
 git clone --recursive https://github.com/l5yth/.dotfiles.git ~/.src/l5yth/.dotfiles
 ~/.src/l5yth/.dotfiles/install.sh
@@ -62,7 +62,7 @@ The RPM name changes with rebuilds. List the directory when the download fails.
 ## Packages
 
 ```bash
-devel-su zypper in -y zsh gnu-coreutils tmux mce-tools -- -busybox-symlinks-coreutils
+devel-su zypper in -y zsh gnu-coreutils tmux mce-tools -busybox-symlinks-coreutils
 zypper se zsh                                         # search
 ```
 
@@ -74,7 +74,7 @@ zypper se zsh                                         # search
 
 ```bash
 grep -qs 'exec zsh' ~/.profile || echo 'case $- in *i*) command -v zsh >/dev/null && exec zsh -l ;; esac' >> ~/.profile
-grep -qs '.local/bin' ~/.zshenv || echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshenv
+grep -qsF '$HOME/.bin' ~/.zshenv || echo 'export PATH="$PATH:$HOME/.bin"' >> ~/.zshenv
 grep -qs 'zsh-completions' ~/.zshenv || echo 'fpath=(/usr/share/zsh/plugins/zsh-completions/src $fpath)' >> ~/.zshenv
 ```
 <!--
@@ -91,7 +91,7 @@ The dotfiles expect the Arch package paths `/usr/share/fzf` and `/usr/share/zsh/
 Paste this block whole.
 
 ```bash
-mkdir -p ~/.local/bin && cd "$(mktemp -d)"
+mkdir -p ~/.bin && cd "$(mktemp -d)"
 curl -fLO https://github.com/junegunn/fzf/releases/download/v0.74.4/fzf-0.74.4-linux_arm64.tar.gz
 curl -fLO https://github.com/ajeetdsouza/zoxide/releases/download/v0.10.0/zoxide-0.10.0-aarch64-unknown-linux-musl.tar.gz
 sha256sum -c - <<'EOF' &&
@@ -99,7 +99,7 @@ sha256sum -c - <<'EOF' &&
 f1f16c5d6298d63dee467eedea1cdcd8490e43e493bea43acd416dc9033ef641  zoxide-0.10.0-aarch64-unknown-linux-musl.tar.gz
 EOF
 for f in *.tar.gz; do tar -xzf "$f"; done &&
-install -m755 fzf zoxide ~/.local/bin/ &&
+install -m755 fzf zoxide ~/.bin/ &&
 ./fzf --zsh > key-bindings.zsh &&
 devel-su install -Dm644 "$PWD/key-bindings.zsh" /usr/share/fzf/key-bindings.zsh
 ```
