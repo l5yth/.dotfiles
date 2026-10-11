@@ -222,6 +222,18 @@ ssh -L 8385:127.0.0.1:8384 defaultuser@192.168.2.15   # then open http://127.0.0
 - Config: `~/.config/dev.scarpino/harbour-syncthing/syncthing`.
 - Android apps keep their files under `~/android_storage`. The Android Syncthing app cannot reach the rest of the home.
 
+## File Browser
+
+From OpenRepos instead of the Jolla Store.
+
+```bash
+devel-su zypper rm harbour-file-browser   # only if the Store version is installed
+devel-su ssu ar openrepos-ichthyosaurus https://sailfish.openrepos.net/ichthyosaurus/personal/main
+devel-su ssu ur
+devel-su zypper ref
+devel-su zypper in -y harbour-file-browser
+```
+
 ## Screenshots
 
 Hold Volume Up and Volume Down together for about two seconds. Files land in `~/Pictures/Screenshots`.
