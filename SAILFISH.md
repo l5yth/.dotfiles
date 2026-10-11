@@ -62,11 +62,11 @@ The RPM name changes with rebuilds. List the directory when the download fails.
 ## Packages
 
 ```bash
-devel-su zypper in -y zsh gnu-coreutils tmux mce-tools -busybox-symlinks-coreutils
+devel-su zypper in -y zsh gnu-coreutils tmux mce-tools -busybox-symlinks-coreutils harbour-ownkeepass
 zypper se zsh                                         # search
 ```
 
-`zsh` and `tmux` come from Chum, the others from Jolla.
+`zsh`, `tmux` and `harbour-ownkeepass` come from Chum, the others from Jolla.
 
 ## Shell
 

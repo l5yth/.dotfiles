@@ -76,7 +76,7 @@ jobs:
       - name: Extras — official packages
         run: |
           pacman -S --noconfirm --needed \
-            mtr dysk fastfetch github-cli asciiquarium cmatrix sl
+            mtr dysk fastfetch github-cli asciiquarium cmatrix sl keepassxc
 
       - name: Extras — pikaur + AUR packages
         run: |
