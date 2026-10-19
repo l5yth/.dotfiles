@@ -50,7 +50,7 @@ If the review then finds failures, fix them and print an amended message.
 
 ## Phase 6: Independent review
 
-Have a fresh instance review against the amended spec-tree `ACCEPTANCE.md`. Report failures verbatim, fix, re-run until clean. Only then is the bug closed. Use a subagent, or this read-only command (a fresh instance does not see the spec-tree note above, so the path is explicit):
+Have a fresh instance review against the amended spec-tree `ACCEPTANCE.md`. A failure is a criterion the change breaks or a claim it makes that is false; a finding beyond what the change claims is a low finding. Report failures verbatim, fix, and re-run. Each round's verdict comes to me before the next round starts. After two failing rounds, stop and give me the failures with three options: narrow the claim, ship as is, or continue. A clean round, or my choice, closes the bug. Use a subagent, or this read-only command (a fresh instance does not see the spec-tree note above, so the path is explicit):
 
     claude -p "Review this repository strictly against ~/.src/l5yth/spec/$org/$repo/ACCEPTANCE.md, including the new regression line AND all prior criteria. Confirm the bug is fixed and nothing else regressed. List every failure." \
       --permission-mode default \
