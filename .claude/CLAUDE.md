@@ -84,6 +84,8 @@
 - Pick the spec entry `$org/$repo` from the primary clone's path below `~/.src`,
   never from the current directory.
 - Inside a worktree, a criterion that names `~/.src/$org/$repo` means the worktree root.
+- Inside a worktree, send plain, separate commands, and write files and scripts with the
+  Write tool: the isolation guard refuses heredocs, loops and `cd` chains.
 - Reviewers run inside the task worktree, never with `isolation: worktree`: those
   worktrees start from the remote default branch and hold none of the uncommitted work.
 - No `git stash`: every worktree of a repository shares one stash.
