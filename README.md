@@ -30,7 +30,7 @@ sudo pacman -S amd-ucode     # AMD only
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
-nvm install lts/krypton
+nvm install lts/lithium
 nvm install-latest-npm
 npm install --global yarn serve pm2
 sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl nerd-fonts ttf-dejavu ttf-fira-code noto-fonts noto-fonts-emoji weechat keepassxc
@@ -39,7 +39,7 @@ cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pikaur.git && cd pikaur
 pikaur -S pipes.sh lsu-git psn-git pass-secret-service
 python -m venv ~/.venv
 source ~/.venv/bin/activate
-pip install -U pip cbor2 black pytest meshtastic meshcore-cli rns nomadnet
+pip install -U pip cbor2 black pytest meshtastic meshcore-cli rns nomadnet platformio
 ```
 
 ## Sandbox only
