@@ -112,7 +112,8 @@ jobs:
             papirus-icon-theme scrot atril shotwell caja engrampa meld code \
             obsidian signal-desktop element-desktop speedcrunch firefox \
             thunderbird protonmail-bridge eom libreoffice-fresh vlc pavucontrol \
-            pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk
+            pasystray krita xdg-desktop-portal xdg-desktop-portal-gtk \
+            typst jre-openjdk-headless
 
       - name: Desktop — AUR packages
         # README also installs storytold-office and storytold-suite. Skipped here: the two

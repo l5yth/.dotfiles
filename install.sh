@@ -177,6 +177,63 @@ chmod "$HOME_MODE" "$HOME"
 rm -f "$HOME/.claude/hooks/guard-bash.py" "$HOME/.claude/hooks/test_guard_bash.py" \
 	"$HOME/.claude/hooks/deny-risky.rb"
 
+# buero, the letter and invoice tool of byz-f/typst-templates (SPEC BU1 to BU3): clone the
+# checkout or fast-forward it, rebuild the binary only when the checkout moved since the last
+# good build, then `buero setup` (links the templates, fetches the jars) and `buero doctor`.
+# Best effort like the spec clone (SR4): the repository is private, and a machine may have no
+# SSH key, toolchain, typst or Java yet (README §Base runs this script first), so every failure
+# becomes a warning after the summary and the install still exits 0. It runs after the overlay,
+# which ships buero's config. BUERO_REPO only lets the acceptance criteria point the clone at a
+# local stand-in (SPEC BU6).
+BUERO_REPO="${BUERO_REPO:-git@github.com:byz-f/typst-templates.git}"
+BUERO_DIR="$HOME/.src/byz-f/typst-templates"
+BUERO_BIN="${CARGO_HOME:-$HOME/.cargo}/bin/buero"
+# The commit of the last build whose setup succeeded. A failed build or setup leaves it as it
+# was, so the next run tries again; an unchanged checkout skips the minutes a release build
+# takes (SPEC BU2, BU3).
+BUERO_STAMP="$HOME/.local/state/dotfiles/buero-commit"
+BUERO_WARN=()
+if ! command -v git >/dev/null; then
+	BUERO_WARN+=("warning: buero: could not clone or update $BUERO_REPO into $BUERO_DIR")
+elif [ -d "$BUERO_DIR/.git" ]; then
+	# --ff-only: never invent a merge over commits that are not pushed yet.
+	git -C "$BUERO_DIR" pull --ff-only --quiet ||
+		BUERO_WARN+=("warning: buero: could not clone or update $BUERO_REPO into $BUERO_DIR")
+else
+	git clone --quiet "$BUERO_REPO" "$BUERO_DIR" ||
+		BUERO_WARN+=("warning: buero: could not clone or update $BUERO_REPO into $BUERO_DIR")
+fi
+if [ -d "$BUERO_DIR/.git" ]; then
+	buero_head=$(git -C "$BUERO_DIR" rev-parse HEAD 2>/dev/null) || buero_head=""
+	if [ -n "$buero_head" ] &&
+		{ [ "$buero_head" != "$(cat "$BUERO_STAMP" 2>/dev/null)" ] || [ ! -x "$BUERO_BIN" ]; }; then
+		buero_missing=()
+		for cmd in cargo typst java; do
+			command -v "$cmd" >/dev/null || buero_missing+=("$cmd")
+		done
+		if [ "${#buero_missing[@]}" -gt 0 ]; then
+			BUERO_WARN+=("warning: buero: not built, missing: ${buero_missing[*]}")
+		# --force: cargo skips a path install whose crate version is unchanged, so a new commit
+		# without a version bump would leave the old binary. --locked: build what Cargo.lock pins.
+		elif cargo install --locked --force --path "$BUERO_DIR"; then
+			# setup takes the working directory as the checkout to link.
+			if (cd "$BUERO_DIR" && "$BUERO_BIN" setup); then
+				mkdir -p "$(dirname "$BUERO_STAMP")"
+				printf '%s\n' "$buero_head" >"$BUERO_STAMP"
+			else
+				BUERO_WARN+=("warning: buero: buero setup failed; the next install.sh run retries it")
+			fi
+			# doctor prints one `ok <what>` or `FAIL <what>: <why>` line per check and exits
+			# non-zero when one fails; only the FAIL lines need the reader's attention.
+			while IFS= read -r buero_line; do
+				BUERO_WARN+=("warning: buero doctor: $buero_line")
+			done < <(cd "$BUERO_DIR" && "$BUERO_BIN" doctor 2>&1 | grep '^FAIL' || true)
+		else
+			BUERO_WARN+=("warning: buero: cargo install failed; the next install.sh run retries it")
+		fi
+	fi
+fi
+
 if [ -z "$(ls -A "$BACKUP")" ]; then
 	echo "installed, no conflicts"
 else
@@ -203,6 +260,11 @@ if [ "$SPEC_FAILED" = 1 ]; then
 	echo "warning: could not clone/update $SPEC_REPO into $SPEC_DIR"
 	echo "it is private, so this needs an SSH key with access (README §SSH-Keys)."
 	echo "re-run install.sh once the key is in place; nothing else was affected."
+fi
+
+if [ "${#BUERO_WARN[@]}" -gt 0 ]; then
+	echo
+	printf '%s\n' "${BUERO_WARN[@]}"
 fi
 
 stale=()
