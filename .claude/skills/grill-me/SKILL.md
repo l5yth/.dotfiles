@@ -26,17 +26,13 @@ description: Grill the user relentlessly about a plan, decision, or idea, one qu
 
 Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
 
-Work the tree one question at a time. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. One question per turn: pick the frontier question that unblocks the most of the tree, give your recommended answer, and wait for the user's answer before asking the next.
+Work the tree one question at a time. The **frontier** is every decision whose prerequisites are already settled: the questions you can ask _now_ without guessing at answers you haven't heard yet. One question per turn: pick the frontier question that unblocks the most of the tree, ask it in the question dialog (`AskUserQuestion`), and wait for the user's answer before asking the next.
 
-Format a question like so:
+Fill the dialog like so:
 
-```
-**Q<n> - <question title>**: <question body, might be multiple paragraphs, including multiple choices>
-
-Recommended: <your recommended answer>
-```
-
-Word each question so "yes" accepts your recommended answer.
+- header: `Q<n>`
+- question: the decision and what hangs on it, so it reads alone
+- options: your recommended answer first, its label ending `(Recommended)`, then the other answers you see; the dialog adds "Other" for an answer you did not offer
 
 Each answer reshapes the tree: settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next question. A question whose answer depends on another open question waits until that one is settled.
 

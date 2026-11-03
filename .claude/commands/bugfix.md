@@ -6,6 +6,8 @@ the project root (global standards, §Specifications and agent instructions). Ev
 write it there, and create the entry if this repository has none. Fall back to the
 project's own files only if it keeps them at its root instead.
 
+Every stop below that waits for me (a question, a confirmation, an approval, a sign-off, a choice) reaches me through the question dialog (`AskUserQuestion`), one decision per question.
+
 ## Phase 0: Reproduce and locate
 
 Do not fix anything yet. First read `CLAUDE.md`, `SPEC.md`, `ACCEPTANCE.md`, and the guardrails. Then reproduce the bug deterministically: give me the exact command, input, or steps that trigger it, and the observed versus expected behavior. If you cannot reproduce it, stop and tell me what you need; do not patch a bug you cannot trigger.

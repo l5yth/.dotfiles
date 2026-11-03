@@ -44,6 +44,15 @@
 - Amend the entry as work proceeds. Decisions go in `SPEC.md`, verification criteria in
   `ACCEPTANCE.md`, standing guidance in `CLAUDE.md`. Do not leave them in the conversation.
 
+### Questions to the user
+- Ask every question, confirmation, approval, sign-off and choice
+  through the question dialog (`AskUserQuestion`), one decision per question.
+- Each question reads alone: it names what it decides and the items it covers, and puts
+  the recommended option first. A report or diff it needs sits in the message before it
+  or in an option's preview.
+- A subagent's question reaches the user the same way: the main session asks it in the
+  dialog.
+
 ## Structure
 - Files: 500 to 1000 LOC. Refactor when a file runs well past 1000.
 - Modular from the first commit, not as later cleanup.
