@@ -1,0 +1,15 @@
+documents_root = "~/Documents/Unternehmen"
+signatures_dir = "~/Documents/Unternehmen/-signatures"
+
+[outbox]
+bzf = "byzantine-fault-gmbh/outbox"
+gdz = "goerli-dezentral-ggmbh/outbox"
+ipr = "inner-planets-reserve-gmbh/outbox"
+od178 = "observation-deck-178-gmbh/outbox"
+
+[signature]
+bzf = "BZF_Alx_Schoedon.png"
+gdz = "GDZ_Afr_Schoedon.png"
+ipr = "IPR_Alx_Schoedon.png"
+od178 = "OD1_Alx_Schoedon.png"
+
