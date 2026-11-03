@@ -202,7 +202,14 @@
       "Bash(cargo install *)",
       "Bash(rustup component add *)",
       "Bash(rustup toolchain install *)",
-      "Bash(typst update*)"
+      "Bash(typst update*)",
+      "Bash(gh run rerun*)",
+      "Bash(gh run cancel*)",
+      "Bash(gh run delete*)",
+      "Bash(gh workflow run*)",
+      "Bash(gh workflow enable*)",
+      "Bash(gh workflow disable*)",
+      "Bash(gh cache delete*)"
     ],
     "defaultMode": "bypassPermissions"
   },
