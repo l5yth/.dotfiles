@@ -179,7 +179,7 @@ rm -f "$HOME/.claude/hooks/guard-bash.py" "$HOME/.claude/hooks/test_guard_bash.p
 
 # buero, the letter and invoice tool of byz-f/typst-templates (SPEC BU1 to BU3): clone the
 # checkout or fast-forward it, rebuild the binary only when the checkout moved since the last
-# good build, then `buero setup` (links the templates, fetches the jars) and `buero doctor`.
+# good build, then `buero setup` (links the templates, fetches its tools) and `buero doctor`.
 # Best effort like the spec clone (SR4): the repository is private, and a machine may have no
 # SSH key, toolchain, typst or Java yet (README §Base runs this script first), so every failure
 # becomes a warning after the summary and the install still exits 0. It runs after the overlay,
@@ -215,8 +215,8 @@ if [ -d "$BUERO_DIR/.git" ]; then
 		done
 		if [ "${#buero_missing[@]}" -gt 0 ]; then
 			BUERO_WARN+=("warning: buero: not built, missing: ${buero_missing[*]}")
-		# --force: a path install refuses to replace a buero that cargo installed from another
-		# checkout (a worktree, say). --locked: build what Cargo.lock pins.
+		# --force: overwrite a buero binary that cargo recorded for another package (cargo-install(1):
+		# "a binary with the same name as another package"). --locked: build what Cargo.lock pins.
 		elif cargo install --locked --force --path "$BUERO_DIR"; then
 			# setup takes the working directory as the checkout to link.
 			if (cd "$BUERO_DIR" && "$BUERO_BIN" setup); then
