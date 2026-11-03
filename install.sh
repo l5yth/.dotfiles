@@ -199,9 +199,11 @@ elif [ -d "$BUERO_DIR/.git" ]; then
 	# --ff-only: never invent a merge over commits that are not pushed yet.
 	git -C "$BUERO_DIR" pull --ff-only --quiet ||
 		BUERO_WARN+=("warning: buero: could not clone or update $BUERO_REPO into $BUERO_DIR")
-else
-	git clone --quiet "$BUERO_REPO" "$BUERO_DIR" ||
-		BUERO_WARN+=("warning: buero: could not clone or update $BUERO_REPO into $BUERO_DIR")
+elif ! git clone --quiet "$BUERO_REPO" "$BUERO_DIR"; then
+	BUERO_WARN+=("warning: buero: could not clone or update $BUERO_REPO into $BUERO_DIR")
+	# git creates ~/.src/byz-f before it reaches the server and leaves it behind when the clone
+	# fails; rmdir drops it only while it is empty.
+	rmdir "$(dirname "$BUERO_DIR")" 2>/dev/null || true
 fi
 if [ -d "$BUERO_DIR/.git" ]; then
 	buero_head=$(git -C "$BUERO_DIR" rev-parse HEAD 2>/dev/null) || buero_head=""
@@ -213,8 +215,8 @@ if [ -d "$BUERO_DIR/.git" ]; then
 		done
 		if [ "${#buero_missing[@]}" -gt 0 ]; then
 			BUERO_WARN+=("warning: buero: not built, missing: ${buero_missing[*]}")
-		# --force: cargo skips a path install whose crate version is unchanged, so a new commit
-		# without a version bump would leave the old binary. --locked: build what Cargo.lock pins.
+		# --force: a path install refuses to replace a buero that cargo installed from another
+		# checkout (a worktree, say). --locked: build what Cargo.lock pins.
 		elif cargo install --locked --force --path "$BUERO_DIR"; then
 			# setup takes the working directory as the checkout to link.
 			if (cd "$BUERO_DIR" && "$BUERO_BIN" setup); then
