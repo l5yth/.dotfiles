@@ -62,7 +62,8 @@
   dirty: stop and ask.
 - Create feature branches. Name them l5y-$area-$scope.
 - Never push. Never open pull requests.
-- Never commit. On finishing a unit of work, print a suggested commit message unprompted.
+- Never commit. On finishing a unit of work, print a suggested commit message unprompted,
+  with the worktree path next to it (the clone's path when there is no worktree).
 - One exception, in `~/.src/l5yth/spec` and no other repository: `pull --ff-only` before
   starting (see §Specifications), then at the end of a unit of work commit the spec
   amendments and push them to `main`. Pull `--ff-only` again immediately before that push —

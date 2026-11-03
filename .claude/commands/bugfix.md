@@ -44,7 +44,7 @@ Two conditions, both required:
 
 ## Phase 5: Commit message
 
-Print the suggested commit message now, before the review. Do not commit and do not push. The message covers the whole fix, so the PR can go up and Phase 6 can run against it in parallel.
+Print the suggested commit message now, before the review, with the worktree path next to it (the clone's path when there is no worktree). Do not commit and do not push. The message covers the whole fix, so the PR can go up and Phase 6 can run against it in parallel.
 
 If the review then finds failures, fix them and print an amended message.
 
