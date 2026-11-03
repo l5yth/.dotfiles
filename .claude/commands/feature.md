@@ -6,6 +6,8 @@ the project root (global standards, §Specifications and agent instructions). Ev
 write it there, and create the entry if this repository has none. Fall back to the
 project's own files only if it keeps them at its root instead.
 
+Every stop below that waits for me (a question, a confirmation, an approval, a sign-off, a choice) reaches me through the question dialog (`AskUserQuestion`), one decision per question.
+
 ## Phase 0: Load the existing structure
 
 Do not write code, prose, or questions yet. First read `CLAUDE.md`, `SPEC.md`, `ACCEPTANCE.md`, the installed skills, and the hooks/guardrails. Tell me back, in a few lines:
