@@ -8,7 +8,7 @@
 	gpgsign = true
 	signoff = true
 [push]
-	default = matching
+	default = simple
 [format]
 	signoff = true
 [pull]
