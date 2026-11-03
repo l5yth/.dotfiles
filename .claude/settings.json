@@ -209,7 +209,11 @@
       "Bash(gh workflow run*)",
       "Bash(gh workflow enable*)",
       "Bash(gh workflow disable*)",
-      "Bash(gh cache delete*)"
+      "Bash(gh cache delete*)",
+      "Edit(~/Documents/outbox/**)",
+      "Bash(rm *Documents/outbox*)",
+      "Bash(mv *Documents/outbox*)",
+      "Bash(cp * *Documents/outbox*)"
     ],
     "defaultMode": "bypassPermissions"
   },
