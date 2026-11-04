@@ -20,7 +20,7 @@ The goal is a minimal working fix, shipped as fast as possible. Block A (Phases 
 
 ## Phase 0: No spec writes
 
-Do not write any `CLAUDE.md`, `SPEC.md` or `ACCEPTANCE.md`, and nothing else in the spec tree, before block B. This is the one exception to the global rule to amend the entry as work proceeds: the amendments wait for block B, and until then the commit message and the PR carry the record.
+Do not write any `CLAUDE.md`, `SPEC.md` or `ACCEPTANCE.md`, and nothing else in the spec tree, before block B; the `pull --ff-only` before reading still runs. This is the one exception to the global rule to amend the entry as work proceeds: the amendments wait for block B, and until then the commit message and the PR carry the record.
 
 Read `CLAUDE.md` and the guardrails in full, and only the `SPEC.md` and `ACCEPTANCE.md` sections that cover the code the fix touches. Phase 5 reads them in full.
 
