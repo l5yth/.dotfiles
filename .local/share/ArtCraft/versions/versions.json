@@ -1,0 +1,18 @@
+{
+  "apps":{
+    "photocraft":{"Pinned":"pacman"},
+    "vectorcraft":{"Pinned":"pacman"},
+    "filmcraft":{"Pinned":"pacman"},
+    "lightcraft":{"Pinned":"pacman"},
+    "pdfcraft":{"Pinned":"pacman"},
+    "effectcraft":{"Pinned":"pacman"},
+    "designcraft":{"Pinned":"pacman"},
+    "figcraft":{"Pinned":"pacman"},
+    "wordcraft":{"Pinned":"pacman"},
+    "soundcraft":{"Pinned":"pacman"},
+    "deckcraft":{"Pinned":"pacman"},
+    "cadcraft":{"Pinned":"pacman"},
+    "gridcraft":{"Pinned":"pacman"}
+  }
+}
+
