@@ -76,7 +76,7 @@ jobs:
       - name: Extras — official packages
         run: |
           pacman -S --noconfirm --needed \
-            mtr dysk fastfetch github-cli asciiquarium cmatrix sl weechat keepassxc
+            mtr dysk fastfetch github-cli asciiquarium cmatrix sl ttf-vlgothic weechat keepassxc
 
       - name: Extras — pikaur + AUR packages
         run: |
@@ -86,7 +86,7 @@ jobs:
             git clone https://aur.archlinux.org/pikaur.git
             cd pikaur
             makepkg -fsri --noconfirm
-            pikaur -S --noconfirm --needed pipes.sh lsu-git psn-git pass-secret-service
+            pikaur -S --noconfirm --needed pipes.sh cmatrix-neo-git lsu-git psn-git pass-secret-service
           '
 
       - name: Extras — Python venv + pip packages
