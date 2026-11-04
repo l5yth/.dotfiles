@@ -763,6 +763,19 @@ class SpecTest(Case):
         self.assertIn("no spec worktree: git fetch origin failed", err)
         self.assertFalse(os.path.exists(self.spec_of("l5y-f-s")))
 
+    def test_os_error_never_blocks_the_task(self):
+        """An OS error making the spec worktree is reported, not raised.
+
+        Phase 6 review, round 1: a file at ``~/.src/.spec`` made ``os.makedirs``
+        raise ``NotADirectoryError`` through ``create``, which failed every
+        create and resume of the task.
+        """
+        write(self.specs, "not a folder\n")
+        path, err = self.create("l5y-o-e")
+        self.assertTrue(os.path.isdir(path))
+        self.assertIn("no spec worktree:", err)
+        self.assertEqual(self.create("l5y-o-e")[0], path)
+
     def test_without_spec_clone(self):
         """No spec clone: reported, and the task worktree is made."""
         os.rename(self.spec, self.spec + ".moved")

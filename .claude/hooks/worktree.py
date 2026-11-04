@@ -395,6 +395,9 @@ def make(primary, org, repo, name):
 def beside(org, repo, name, task):
     """Make the spec worktree of a new or reused task, reporting instead of failing.
 
+    A refusal and an OS error alike, such as a file where a folder should be,
+    are reported on stderr, so the task worktree never pays for them (SW2).
+
     Args:
         org: The task's org.
         repo: The task's repository.
@@ -403,7 +406,7 @@ def beside(org, repo, name, task):
     """
     try:
         say(f"spec worktree {spec_worktree(org, repo, name)}")
-    except Refusal as error:
+    except (Refusal, OSError) as error:
         say(
             f"no spec worktree: {error}; retry in {task} with: "
             "python3 ~/.claude/hooks/worktree.py spec"
@@ -569,7 +572,8 @@ def retire(path, exclude):
     not override a lock. The branch goes with ``git branch -d`` only.
 
     Args:
-        path: The real path of a worktree under ``~/.src/.wt``.
+        path: The real path of a task worktree under ``~/.src/.wt`` or a spec
+            worktree under ``~/.src/.spec``.
         exclude: PIDs that do not count as users, see ``users``.
 
     Returns:
