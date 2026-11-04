@@ -35,9 +35,14 @@
 - A repository's instructions and specifications live in the spec repo, not in the
   repository itself:
     ~/.src/l5yth/spec/$org/$repo/    (or $user in place of $org)
-- Pull before reading: `git -C ~/.src/l5yth/spec pull --ff-only`. The tree is shared across
-  machines, so a stale clone means amending a spec that has already moved on, and the push
-  at the end of the work then lands on a base that no longer exists.
+- A task reads and amends its entry in its own spec worktree, a checkout of the whole spec
+  repo that the worktree hook makes beside the task worktree;
+  `python3 ~/.claude/hooks/worktree.py spec` prints its path and makes a missing one. In a
+  task, an entry path `~/.src/l5yth/spec/<org>/<repo>/...` named in a command, a skill or a
+  criterion means the same path in that worktree.
+- Pull before reading: `git -C ~/.src/l5yth/spec pull --ff-only`, and in a task
+  `git -C <spec worktree> pull --ff-only origin main`. The tree is shared across machines,
+  so a stale copy means amending a spec that has already moved on.
 - Read that directory before starting work. Treat a `CLAUDE.md`, `SPEC.md`, or
   `ACCEPTANCE.md` found there as if it sat at the project root.
 - No entry for the repository: fall back to the project's own files.
@@ -73,21 +78,22 @@
 - Never push. Never open pull requests.
 - Never commit. On finishing a unit of work, print a suggested commit message unprompted,
   with the worktree path next to it (the clone's path when there is no worktree).
-- One exception, in `~/.src/l5yth/spec` and no other repository: `pull --ff-only` before
-  starting (see §Specifications), then at the end of a unit of work commit the spec
-  amendments and push them to `main`. Pull `--ff-only` again immediately before that push —
-  the remote can move while the work is in progress. No feature branch, no mid-task pushes.
-- Sessions share the one spec clone. Before the first write to an entry, run
-  `git -C ~/.src/l5yth/spec status --porcelain -- $org/$repo/`; a change this task did not
-  make means another task owns the entry: stop and ask. Commit only that entry:
-  `git -C ~/.src/l5yth/spec add -- $org/$repo/`, then
-  `git -C ~/.src/l5yth/spec commit -m "<message>" -- $org/$repo/`.
+- One exception, in `~/.src/l5yth/spec` and no other repository: at the end of a unit of
+  work, commit the spec amendments in the spec worktree of the task and push them to
+  `main`. No feature branch, no mid-task pushes.
+- Land them in this order, with the spec worktree's absolute path as `<w>`:
+  `git -C <w> pull --ff-only origin main`, which carries the edits onto the current `main`
+  or refuses and changes nothing; `git -C <w> add -A`; `git -C <w> commit -m "<message>"`;
+  `git -C <w> merge origin/main`; `git -C <w> push origin HEAD:main`. A rejected push:
+  `git -C <w> fetch origin`, merge and push again. A merge conflict: keep the decisions of
+  both sides, and ask only when they contradict.
 
 ### Worktrees
 - One task, one branch, one worktree, one session: start it from the primary clone
   `~/.src/$org/$repo` with `claude -w <branch>`. The worktree hook puts it at
-  `~/.src/.wt/$org/$repo/<branch>`, branched from the remote default branch. The spec
-  clone takes no worktrees.
+  `~/.src/.wt/$org/$repo/<branch>`, branched from the remote default branch, and the spec
+  worktree of the task at `~/.src/.spec/$org/$repo/<branch>`, detached at the spec repo's
+  `main`.
 - The fetch and fast-forward rule above runs against the primary clone, not the worktree.
   Its state is reported and never blocks a worktree session. Do no task work in the
   primary clone.
@@ -95,9 +101,11 @@
   never from the current directory.
 - Inside a worktree, a criterion that names `~/.src/$org/$repo` means the worktree root.
 - Inside a worktree, send plain, separate commands, and write files and scripts with the
-  Write tool: the isolation guard refuses heredocs, loops and `cd` chains.
+  Write tool: the isolation guard refuses heredocs, loops and `cd` chains. Give `git -C` an
+  absolute path: the guard refuses `~` there.
 - Reviewers run inside the task worktree, never with `isolation: worktree`: those
   worktrees start from the remote default branch and hold none of the uncommitted work.
 - No `git stash`: every worktree of a repository shares one stash.
 - Finished worktrees: `python3 ~/.claude/hooks/worktree.py sweep` removes each one that
-  is clean and fully pushed, and keeps the rest with the reason.
+  is clean and fully pushed, and keeps the rest with the reason; a spec worktree goes only
+  after its task worktree.
