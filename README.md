@@ -33,10 +33,10 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
 nvm install lts/lithium
 nvm install-latest-npm
 npm install --global yarn serve pm2
-sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl nerd-fonts ttf-dejavu ttf-fira-code noto-fonts noto-fonts-emoji weechat keepassxc
+sudo pacman -S mtr dysk fastfetch github-cli asciiquarium cmatrix sl nerd-fonts ttf-dejavu ttf-fira-code noto-fonts noto-fonts-emoji ttf-vlgothic weechat keepassxc
 rustup default stable
 cd "$(mktemp -d)" && git clone https://aur.archlinux.org/pikaur.git && cd pikaur && makepkg -fsri
-pikaur -S pipes.sh lsu-git psn-git pass-secret-service
+pikaur -S pipes.sh cmatrix-neo-git lsu-git psn-git pass-secret-service
 python -m venv ~/.venv
 source ~/.venv/bin/activate
 pip install -U pip cbor2 black pytest meshtastic meshcore-cli rns nomadnet platformio
