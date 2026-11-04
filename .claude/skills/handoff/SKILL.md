@@ -26,13 +26,13 @@ argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
 
-Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at the project root. Every `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there, write it there, and create the entry if this repository has none. Fall back to the project's own files only if it keeps them at its root instead.
+Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at the project root. Every `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there, write it there, and create the entry if this repository has none, all in the task's spec worktree (`python3 ~/.claude/hooks/worktree.py spec` prints its path). Fall back to the project's own files only if it keeps them at its root instead.
 
 Write a handoff document summarising the current conversation so a fresh agent can continue the work.
 
 1. Record first. Every decision still open in the conversation goes into the entry before the handoff is written: decisions in `SPEC.md`, verification criteria in `ACCEPTANCE.md`, standing guidance in `CLAUDE.md`. The handoff then points at the entry instead of restating it.
 2. Save the document to the session scratchpad directory when the harness names one, else `$TMPDIR`, else `/tmp` - not the current workspace. Print its absolute path.
-3. State where the work stands: the worktree path, the branch, what is uncommitted, and the suggested commit message if one was printed.
+3. State where the work stands: the worktree path, the branch, what is uncommitted, the spec worktree path and whether its amendments have landed, and the suggested commit message if one was printed.
 4. Include a "Suggested skills" section in the document, naming the skills the next session should use: the Skill tool for a model-invoked skill, the slash command the user types for a user-invoked one.
 
 Do not duplicate content already captured in other artifacts (the spec-tree entry, plans, issues, commits, diffs). Reference them by path or URL instead.

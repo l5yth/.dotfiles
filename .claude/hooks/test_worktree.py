@@ -89,8 +89,14 @@ class Case(unittest.TestCase):
             os.environ.pop(key, None)
         self.src = os.path.join(self.tmp, ".src")
         self.root = os.path.join(self.src, ".wt")
+        self.specs = os.path.join(self.src, ".spec")
         spec = os.path.join(self.src, "l5yth", "spec")
-        for name, value in (("SRC", self.src), ("SPEC", spec), ("ROOT", self.root)):
+        for name, value in (
+            ("SRC", self.src),
+            ("SPEC", spec),
+            ("ROOT", self.root),
+            ("SPECS", self.specs),
+        ):
             patcher = mock.patch.object(wt, name, value)
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -664,6 +670,211 @@ class SweepTest(Case):
         self.assertEqual(self.sweep(), ([], ""))
 
 
+class SpecTest(Case):
+    """Spec worktrees: one checkout of the spec repo per task (SW1 to SW3)."""
+
+    def setUp(self):
+        """Add a spec clone at ``l5yth/spec`` with an origin of its own."""
+        super().setUp()
+        self.spec_origin = self.make_origin("-spec")
+        self.spec = self.clone(self.spec_origin, "l5yth", "spec")
+
+    def spec_of(self, name, org="o", repo="r"):
+        """Return where the spec worktree of the task ``org/repo/name`` lives.
+
+        Args:
+            name: The task's worktree name.
+            org: The task's org.
+            repo: The task's repository.
+
+        Returns:
+            ``~/.src/.spec/<org>/<repo>/<name>`` in the scratch tree.
+        """
+        return os.path.join(self.specs, org, repo, name)
+
+    def verb(self, args, cwd):
+        """Run ``main`` with ``spec`` and ``args`` from ``cwd``.
+
+        Args:
+            args: The arguments after ``spec``.
+            cwd: The working directory ``main`` sees.
+
+        Returns:
+            ``(status, stdout, stderr)``.
+        """
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch("os.getcwd", return_value=cwd):
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                status = wt.main(["spec", *args])
+        return status, out.getvalue(), err.getvalue()
+
+    def gone(self, repo):
+        """Point ``repo``'s origin at a path that does not exist.
+
+        Args:
+            repo: A clone whose fetches should fail from now on.
+        """
+        gone = os.path.join(self.tmp, "gone.git")
+        run("remote", "set-url", "origin", gone, cwd=repo)
+
+    def test_each_task_gets_its_own(self):
+        """Two tasks get two spec worktrees, detached at the spec origin/HEAD.
+
+        An edit in one shows in neither the other nor the spec clone: before
+        SW1 every task wrote in the spec clone itself (2026-11-03).
+        """
+        _, err = self.create("l5y-a-x")
+        self.create("l5y-b-x")
+        base = run("rev-parse", "refs/remotes/origin/HEAD", cwd=self.spec)
+        for name in ("l5y-a-x", "l5y-b-x"):
+            with self.subTest(name=name):
+                path = self.spec_of(name)
+                self.assertTrue(os.path.isdir(path), f"no spec worktree at {path}")
+                self.assertEqual(
+                    run("rev-parse", "--abbrev-ref", "HEAD", cwd=path), "HEAD"
+                )
+                self.assertEqual(run("rev-parse", "HEAD", cwd=path), base)
+        self.assertIn(f"spec worktree {self.spec_of('l5y-a-x')}", err)
+        write(os.path.join(self.spec_of("l5y-a-x"), "docs", "a.txt"), "task a\n")
+        self.assertEqual(run("status", "--porcelain", cwd=self.spec_of("l5y-b-x")), "")
+        self.assertEqual(run("status", "--porcelain", cwd=self.spec), "")
+
+    def test_create_prints_the_task_path_alone(self):
+        """stdout still carries the task path alone; the spec path goes to stderr."""
+        out, err = io.StringIO(), io.StringIO()
+        event = json.dumps({"name": "l5y-p-a", "cwd": self.primary})
+        with mock.patch("sys.stdin", io.StringIO(event)):
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                status = wt.main(["create"])
+        task = os.path.join(self.root, "o", "r", "l5y-p-a")
+        self.assertEqual((status, out.getvalue()), (0, task + "\n"))
+        self.assertIn(f"spec worktree {self.spec_of('l5y-p-a')}", err.getvalue())
+
+    def test_subagents_get_none(self):
+        """A name without ``l5y-`` gets no spec worktree."""
+        self.create("agent-0123456789abcdef0")
+        self.assertFalse(os.path.exists(self.specs))
+
+    def test_failure_never_blocks_the_task(self):
+        """A failed spec fetch is reported; the task worktree is made anyway."""
+        self.gone(self.spec)
+        path, err = self.create("l5y-f-s")
+        self.assertTrue(os.path.isdir(path))
+        self.assertIn("no spec worktree: git fetch origin failed", err)
+        self.assertFalse(os.path.exists(self.spec_of("l5y-f-s")))
+
+    def test_without_spec_clone(self):
+        """No spec clone: reported, and the task worktree is made."""
+        os.rename(self.spec, self.spec + ".moved")
+        path, err = self.create("l5y-n-s")
+        self.assertTrue(os.path.isdir(path))
+        self.assertIn("no spec worktree: no spec clone at", err)
+
+    def test_resume_opens_offline(self):
+        """A second create reuses both worktrees with both origins gone."""
+        path, _ = self.create("l5y-r-s")
+        self.gone(self.primary)
+        self.gone(self.spec)
+        again, err = self.create("l5y-r-s")
+        self.assertEqual(again, path)
+        self.assertIn(f"spec worktree {self.spec_of('l5y-r-s')}", err)
+
+    def test_stray_path(self):
+        """A directory at the spec path that is not a spec worktree stays as it is."""
+        os.makedirs(self.spec_of("l5y-x-s"))
+        path, err = self.create("l5y-x-s")
+        self.assertTrue(os.path.isdir(path))
+        self.assertIn("exists and is not a worktree of", err)
+        self.assertEqual(os.listdir(self.spec_of("l5y-x-s")), [])
+
+    def test_fast_forwards_the_spec_clone(self):
+        """A clean spec clone that is behind is fast-forwarded, as a primary is."""
+        run("reset", "-q", "--keep", "HEAD~1", cwd=self.spec)
+        _, err = self.create("l5y-f-f")
+        self.assertIn(f"primary {self.spec}: fast-forwarded 1 commit(s)", err)
+
+    def test_verb_inside_a_task_worktree(self):
+        """``spec`` in a task worktree, or below it, prints its spec worktree."""
+        path, _ = self.create("l5y-v-t")
+        os.makedirs(os.path.join(path, "deep"))
+        for cwd in (path, os.path.join(path, "deep")):
+            with self.subTest(cwd=cwd):
+                self.assertEqual(
+                    self.verb([], cwd), (0, self.spec_of("l5y-v-t") + "\n", "")
+                )
+
+    def test_verb_makes_a_missing_one(self):
+        """``spec`` makes the spec worktree the hook could not make."""
+        self.gone(self.spec)
+        path, _ = self.create("l5y-v-m")
+        run("remote", "set-url", "origin", self.spec_origin, cwd=self.spec)
+        status, out, _ = self.verb([], path)
+        self.assertEqual((status, out), (0, self.spec_of("l5y-v-m") + "\n"))
+        self.assertTrue(os.path.isdir(self.spec_of("l5y-v-m")))
+
+    def test_verb_in_a_primary_clone_takes_a_name(self):
+        """In a primary clone, the spec clone included, ``spec`` needs a name."""
+        status, out, err = self.verb([], self.primary)
+        self.assertEqual((status, out), (1, ""))
+        self.assertIn("name the task", err)
+        self.assertEqual(
+            self.verb(["l5y-n-p"], self.primary)[:2],
+            (0, self.spec_of("l5y-n-p") + "\n"),
+        )
+        self.assertEqual(
+            self.verb(["l5y-n-s"], self.spec)[:2],
+            (0, self.spec_of("l5y-n-s", "l5yth", "spec") + "\n"),
+        )
+        status, out, err = self.verb(["../x"], self.primary)
+        self.assertEqual((status, out), (1, ""))
+        self.assertIn("unsafe worktree name", err)
+
+    def test_remove_leaves_spec_worktrees(self):
+        """``remove`` never takes a spec worktree, nor one with its task."""
+        task, _ = self.create("l5y-r-l")
+        removed, err = self.remove(self.spec_of("l5y-r-l"))
+        self.assertFalse(removed)
+        self.assertIn("not a worktree under", err)
+        self.assertTrue(self.remove(task)[0])
+        self.assertTrue(os.path.isdir(self.spec_of("l5y-r-l")))
+
+    def test_sweep_keeps_it_while_the_task_is_open(self):
+        """A spec worktree goes only after its task worktree, in the same sweep."""
+        task, _ = self.create("l5y-s-p")
+        spec = self.spec_of("l5y-s-p")
+        write(os.path.join(task, "wip.txt"), "wip\n")
+        lines, _ = self.sweep()
+        self.assertEqual(
+            lines,
+            [
+                f"kept {task}: uncommitted or untracked changes",
+                f"kept {spec}: task worktree {task} is open",
+            ],
+        )
+        os.remove(os.path.join(task, "wip.txt"))
+        lines, _ = self.sweep()
+        self.assertEqual(lines, [f"removed {task}", f"removed {spec}"])
+        self.assertFalse(os.path.exists(os.path.join(self.specs, "o")))
+
+    def test_sweep_keeps_spec_work(self):
+        """With its task gone, edits or an unpushed commit keep a spec worktree."""
+        for name in ("l5y-s-c", "l5y-s-e"):
+            task, _ = self.create(name)
+            self.assertTrue(self.remove(task)[0])
+            path = self.spec_of(name)
+            self.assertTrue(os.path.isdir(path), f"no spec worktree at {path}")
+            write(os.path.join(self.spec_of(name), "docs", "a.txt"), f"{name}\n")
+        run("commit", "-q", "-am", "spec", cwd=self.spec_of("l5y-s-c"))
+        lines, _ = self.sweep()
+        self.assertEqual(
+            lines,
+            [
+                f"kept {self.spec_of('l5y-s-c')}: commits that exist only here",
+                f"kept {self.spec_of('l5y-s-e')}: uncommitted or untracked changes",
+            ],
+        )
+
+
 class ProcessTest(unittest.TestCase):
     """``ancestors`` and ``users`` read ``/proc`` and degrade quietly."""
 
@@ -703,7 +914,7 @@ class ProcessTest(unittest.TestCase):
 
 
 class MainTest(Case):
-    """``main`` dispatches the three verbs and turns refusals into exit 1."""
+    """``main`` dispatches the four verbs and turns refusals into exit 1."""
 
     def call(self, argv, stdin=""):
         """Run ``main`` with ``stdin``.

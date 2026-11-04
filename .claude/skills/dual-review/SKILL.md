@@ -26,7 +26,7 @@ argument-hint: "[fixed point: commit, branch or tag; default origin/HEAD]"
 disable-model-invocation: true
 ---
 
-Specs for this repository live in its spec-tree entry, `~/.src/l5yth/spec/$org/$repo/`: every `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there. Fall back to the project's own files only if the spec tree has no entry.
+Specs for this repository live in its spec-tree entry, `~/.src/l5yth/spec/$org/$repo/`: every `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there, read in the task's spec worktree (`python3 ~/.claude/hooks/worktree.py spec` prints its path). Fall back to the project's own files only if the spec tree has no entry.
 
 Two-axis review of the work between a fixed point the user supplies and the working tree:
 

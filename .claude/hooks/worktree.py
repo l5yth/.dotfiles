@@ -7,15 +7,22 @@
 """Worktree hook: one task, one branch, one worktree under ``~/.src/.wt``.
 
 Registered for Claude Code's ``WorktreeCreate`` and ``WorktreeRemove`` events,
-and run by hand for ``sweep`` (SPEC §Feature: Worktrees, WT1 to WT4):
+and run by hand for ``sweep`` and ``spec`` (SPEC §Feature: Worktrees, WT1 to
+WT4; §Fix: Tasks share one spec working tree, SW1 to SW3):
 
 - ``create`` reads the event on stdin, makes the worktree at
   ``~/.src/.wt/<org>/<repo>/<name>`` and prints its path, and nothing else, on
-  stdout. Claude Code starts the session in whatever path it prints.
+  stdout. Claude Code starts the session in whatever path it prints. For an
+  ``l5y-`` name it then makes the task's spec worktree, a detached checkout of
+  the spec repo at ``~/.src/.spec/<org>/<repo>/<name>``; a failure there is
+  reported and never costs the task worktree.
 - ``remove`` reads the event on stdin and removes the worktree only when no
   work can be lost. Exit 1 keeps it: the directory stays and the removal fails.
-- ``sweep`` applies the same test to every worktree under ``~/.src/.wt`` and
-  prints one line per path.
+- ``sweep`` applies the same test to every worktree under ``~/.src/.wt``, then
+  to every spec worktree under ``~/.src/.spec`` whose task worktree is gone,
+  and prints one line per path.
+- ``spec [<name>]`` prints the spec worktree of the task the working directory
+  belongs to, and makes it when it is missing.
 
 Every git message goes to stderr. A refusal exits 1 with its reason on stderr.
 """
@@ -31,6 +38,9 @@ import sys
 SRC = os.path.realpath(os.path.expanduser("~/.src"))
 SPEC = os.path.join(SRC, "l5yth", "spec")
 ROOT = os.path.join(SRC, ".wt")
+# Spec worktrees sit outside ROOT: the deny list refuses `git -C` commit and push
+# under `.src/.wt/`, and an agent commits and pushes spec work itself (SW1).
+SPECS = os.path.join(SRC, ".spec")
 # Kept in the repository's common git directory, which every worktree shares.
 LOCK = "l5y-worktree.lock"
 # One path component: no separator, no leading dot, so no `..` and no hidden name.
@@ -100,6 +110,27 @@ def network_env(primary):
     return env
 
 
+def fetch(primary, what):
+    """Fetch ``origin`` in ``primary``, or refuse before anything is made.
+
+    Args:
+        primary: The clone to fetch in.
+        what: What the refusal says is not made, such as ``worktree``.
+
+    Raises:
+        Refusal: When the fetch fails.
+    """
+    done = git(
+        ["fetch", "--quiet", "origin"],
+        primary,
+        check=False,
+        echo=True,
+        env=network_env(primary),
+    )
+    if done.returncode:
+        raise Refusal(f"git fetch origin failed in {primary}; no {what} is made")
+
+
 def common_dir(path):
     """Return the real path of the git directory every worktree of ``path`` shares.
 
@@ -133,25 +164,29 @@ def locked(primary):
         yield
 
 
-def primary_of(cwd):
+def primary_of(cwd, spec=False):
     """Return the primary clone ``cwd`` belongs to, with its org and repo (WT3 step 1).
 
     Args:
         cwd: The event's working directory.
+        spec: Accept the spec clone, as the ``spec`` verb does (SW2).
 
     Returns:
         ``(primary, org, repo)`` for a primary at exactly ``~/.src/<org>/<repo>``.
 
     Raises:
-        Refusal: Outside a repository, for the spec clone, for a submodule or a
-            bare repository, and for anything that is not ``~/.src/<org>/<repo>``.
+        Refusal: Outside a repository, for the spec clone unless ``spec`` is set,
+            for a submodule or a bare repository, and for anything that is not
+            ``~/.src/<org>/<repo>``.
     """
     common = common_dir(cwd)
     if not common:
         raise Refusal(f"{cwd} is not inside a git repository")
     primary = os.path.dirname(common)
-    if primary == os.path.realpath(SPEC):
-        raise Refusal("the spec clone takes no worktrees")
+    if primary == os.path.realpath(SPEC) and not spec:
+        raise Refusal(
+            "the spec clone takes no task worktrees; run: worktree.py spec <name>"
+        )
     parts = os.path.relpath(primary, SRC).split(os.sep)
     if (
         os.path.basename(common) != ".git"
@@ -290,10 +325,37 @@ def how(primary, name, base, path):
 
 
 def create(event):
-    """Make the worktree a ``WorktreeCreate`` event asks for (WT3).
+    """Make the worktree a ``WorktreeCreate`` event asks for (WT3), then its spec one.
+
+    An ``l5y-`` task also gets its spec worktree (SW2), made after the task
+    worktree and reported on stderr only, so a failure there never costs the
+    task worktree and stdout still carries its path alone.
 
     Args:
         event: The decoded hook input.
+
+    Returns:
+        The task worktree's path.
+
+    Raises:
+        Refusal: When the task worktree cannot be made; nothing is left behind.
+    """
+    primary, org, repo = primary_of(event.get("cwd") or os.getcwd())
+    name = name_of(event)
+    path = make(primary, org, repo, name)
+    if name.startswith("l5y-"):
+        beside(org, repo, name, path)
+    return path
+
+
+def make(primary, org, repo, name):
+    """Make or reuse the task worktree ``~/.src/.wt/<org>/<repo>/<name>`` (WT3).
+
+    Args:
+        primary: The primary clone.
+        org: Its org, the first path component below ``~/.src``.
+        repo: Its repository, the second.
+        name: The worktree name, already checked by ``name_of``.
 
     Returns:
         The worktree's path.
@@ -301,8 +363,6 @@ def create(event):
     Raises:
         Refusal: When any step fails; nothing is left behind.
     """
-    primary, org, repo = primary_of(event.get("cwd") or os.getcwd())
-    name = name_of(event)
     path = os.path.join(os.path.realpath(ROOT), org, repo, name)
     # An existing worktree opens before any fetch, so it works offline.
     if os.path.realpath(path) in worktrees(primary):
@@ -311,15 +371,7 @@ def create(event):
     if os.path.lexists(path):
         raise Refusal(f"{path} exists and is not a worktree of {primary}")
     with locked(primary):
-        fetch = git(
-            ["fetch", "--quiet", "origin"],
-            primary,
-            check=False,
-            echo=True,
-            env=network_env(primary),
-        )
-        if fetch.returncode:
-            raise Refusal(f"git fetch origin failed in {primary}; no worktree is made")
+        fetch(primary, "worktree")
         base = base_of(primary)
         tend(primary, base)
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -338,6 +390,91 @@ def create(event):
                     f"git submodule update failed in {path}; removed it again"
                 )
     return path
+
+
+def beside(org, repo, name, task):
+    """Make the spec worktree of a new or reused task, reporting instead of failing.
+
+    Args:
+        org: The task's org.
+        repo: The task's repository.
+        name: The task's worktree name.
+        task: The task worktree, named in the retry hint.
+    """
+    try:
+        say(f"spec worktree {spec_worktree(org, repo, name)}")
+    except Refusal as error:
+        say(
+            f"no spec worktree: {error}; retry in {task} with: "
+            "python3 ~/.claude/hooks/worktree.py spec"
+        )
+
+
+def spec_worktree(org, repo, name):
+    """Return the task's spec worktree, made when it is missing (SW1).
+
+    It is a checkout of the whole spec repo at
+    ``~/.src/.spec/<org>/<repo>/<name>``, detached at the spec repo's remote
+    default branch: the work lands on ``main``, and tasks of two repositories
+    may carry the same branch name. An existing one is returned before any
+    fetch, so it opens offline. The spec clone itself is fast-forwarded when
+    that is safe, as ``tend`` does for every primary clone.
+
+    Args:
+        org: The task's org.
+        repo: The task's repository.
+        name: The task's worktree name, a single safe path component.
+
+    Returns:
+        The spec worktree's path.
+
+    Raises:
+        Refusal: Without a spec clone, for a path that is something else, and
+            when the fetch or ``git worktree add`` fails.
+    """
+    spec = os.path.realpath(SPEC)
+    path = os.path.join(os.path.realpath(SPECS), org, repo, name)
+    if not os.path.isdir(os.path.join(spec, ".git")):
+        raise Refusal(f"no spec clone at {spec}")
+    if os.path.realpath(path) in worktrees(spec):
+        return path
+    if os.path.lexists(path):
+        raise Refusal(f"{path} exists and is not a worktree of {spec}")
+    with locked(spec):
+        fetch(spec, "spec worktree")
+        base = base_of(spec)
+        tend(spec, base)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        git(["worktree", "add", "--detach", path, base], spec, echo=True)
+    return path
+
+
+def spec(args, cwd):
+    """Return the spec worktree of the task ``cwd`` belongs to, made when missing (SW2).
+
+    Inside a task worktree ``~/.src/.wt/<org>/<repo>/<name>`` the task is that
+    worktree; in a primary clone, the spec clone included, ``args`` names it.
+
+    Args:
+        args: The arguments after ``spec``: the task's name, which a task
+            worktree does not need.
+        cwd: The working directory.
+
+    Returns:
+        The spec worktree's path.
+
+    Raises:
+        Refusal: Outside a primary clone and its task worktrees, without a name
+            outside a task worktree, for an unsafe name, and when
+            ``spec_worktree`` refuses.
+    """
+    _, org, repo = primary_of(cwd, spec=True)
+    top = os.path.realpath(git(["rev-parse", "--show-toplevel"], cwd).stdout.strip())
+    folder = os.path.join(os.path.realpath(ROOT), org, repo)
+    task = os.path.basename(top) if os.path.dirname(top) == folder else ""
+    if not (args or task):
+        raise Refusal("name the task: worktree.py spec <name>")
+    return spec_worktree(org, repo, name_of({"name": args[0] if args else task}))
 
 
 def ancestors():
@@ -498,27 +635,44 @@ def folders(path):
     return sorted(e for e in os.listdir(path) if os.path.isdir(os.path.join(path, e)))
 
 
-def sweep():
-    """Retire every worktree under ``~/.src/.wt`` and print one line per path (WT4).
+def sweep_tree(root, spec):
+    """Retire every worktree at ``root/<org>/<repo>/<name>``, one line per path.
 
-    Nothing is excluded from the users check, so the worktree ``sweep`` runs
-    from is in use and stays.
+    Args:
+        root: ``~/.src/.wt`` for task worktrees (WT4), ``~/.src/.spec`` for
+            spec worktrees (SW3).
+        spec: Whether ``root`` holds spec worktrees, which belong to the spec
+            clone and stay while their task worktree exists.
     """
-    root = os.path.realpath(ROOT)
     for org in folders(root):
         for repo in folders(os.path.join(root, org)):
             folder = os.path.join(root, org, repo)
             for name in folders(folder):
                 path = os.path.join(folder, name)
-                removed, reason = retire(path, frozenset())
+                task = os.path.join(os.path.realpath(ROOT), org, repo, name)
+                if spec and os.path.isdir(task):
+                    removed, reason = False, f"task worktree {task} is open"
+                else:
+                    removed, reason = retire(path, frozenset())
                 print(f"removed {path}" if removed else f"kept {path}: {reason}")
-            primary = os.path.join(SRC, org, repo)
+            primary = os.path.realpath(SPEC) if spec else os.path.join(SRC, org, repo)
             if os.path.isdir(primary):
                 git(["worktree", "prune"], primary, check=False)
             with contextlib.suppress(OSError):
                 os.rmdir(folder)
         with contextlib.suppress(OSError):
             os.rmdir(os.path.join(root, org))
+
+
+def sweep():
+    """Retire every task worktree, then every spec worktree (WT4, SW3).
+
+    Task worktrees go first, so a spec worktree whose task worktree this run
+    removed goes in the same run. Nothing is excluded from the users check, so
+    the worktree ``sweep`` runs from is in use and stays.
+    """
+    sweep_tree(os.path.realpath(ROOT), spec=False)
+    sweep_tree(os.path.realpath(SPECS), spec=True)
 
 
 def read_event():
@@ -540,7 +694,7 @@ def read_event():
 
 
 def main(argv=None):
-    """Run ``create``, ``remove`` or ``sweep`` and return the exit status.
+    """Run ``create``, ``remove``, ``sweep`` or ``spec`` and return the exit status.
 
     Args:
         argv: The arguments after the script name; ``None`` reads ``sys.argv``.
@@ -548,7 +702,8 @@ def main(argv=None):
     Returns:
         0 on success, 1 on a refusal or a kept worktree.
     """
-    verb = (sys.argv[1:] if argv is None else argv)[:1]
+    args = sys.argv[1:] if argv is None else argv
+    verb = args[:1]
     try:
         if verb == ["create"]:
             print(create(read_event()))
@@ -558,7 +713,10 @@ def main(argv=None):
         if verb == ["sweep"]:
             sweep()
             return 0
-        raise Refusal("usage: worktree.py create|remove|sweep")
+        if verb == ["spec"]:
+            print(spec(args[1:], os.getcwd()))
+            return 0
+        raise Refusal("usage: worktree.py create|remove|sweep|spec [<name>]")
     except Refusal as error:
         say(str(error))
         return 1

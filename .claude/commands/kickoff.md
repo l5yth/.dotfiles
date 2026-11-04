@@ -5,7 +5,8 @@ I am building $ARGUMENTS.
 Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at
 the project root (global standards, §Specifications and agent instructions). Every
 `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there,
-write it there, and create the entry if this repository has none. Fall back to the
+write it there, and create the entry if this repository has none, all in this task's spec
+worktree (`python3 ~/.claude/hooks/worktree.py spec` prints its path). Fall back to the
 project's own files only if it keeps them at its root instead.
 
 Every stop below that waits for me (a question, a confirmation, an approval, a sign-off, a choice) reaches me through the question dialog (`AskUserQuestion`), one decision per question.
@@ -49,7 +50,7 @@ If the review then finds failures, fix them and print an amended message.
 
 When all buckets are done, have a second, fresh instance review the result against the spec-tree `ACCEPTANCE.md`. Report failures verbatim, fix, re-run until clean. Only then declare the project finished. Use a subagent, or this read-only command (a fresh instance does not see the spec-tree note above, so the path is explicit):
 
-    claude -p "Review this repository strictly against ~/.src/l5yth/spec/$org/$repo/ACCEPTANCE.md. List every failure." \
+    claude -p "Review this repository strictly against ~/.src/.spec/$org/$repo/$branch/$org/$repo/ACCEPTANCE.md. List every failure." \
       --permission-mode default \
       --allowedTools "Read" "Grep" "Glob" "Bash(git ls-files:*)" "Bash(git branch:*)" "Bash(git status:*)" "Bash(git log:*)" "Bash(git diff:*)" "Bash(git show:*)" "Bash(git ls-tree:*)" "Bash(git rev-parse:*)" "Bash(git hash-object:*)" "Bash(grep:*)" "Bash(wc:*)" "Bash(ls:*)" "Bash(test:*)" "Bash(sha256sum:*)" "Bash(npm run:*)" "Bash(npm test:*)" "Bash(node --test:*)" \
       --disallowedTools "Edit" "Write" "NotebookEdit"

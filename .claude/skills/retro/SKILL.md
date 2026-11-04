@@ -25,7 +25,7 @@ description: "Conduct a retrospective on a coding session."
 disable-model-invocation: true
 ---
 
-Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at the project root. Every `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there, write it there, and create the entry if this repository has none. Fall back to the project's own files only if it keeps them at its root instead.
+Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo/`, not at the project root. Every `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there: read it there, write it there, and create the entry if this repository has none, all in the task's spec worktree (`python3 ~/.claude/hooks/worktree.py spec` prints its path). Fall back to the project's own files only if it keeps them at its root instead.
 
 The user has asked for a **retrospective**. You are suggesting improvements to the coding agent's **environment** to improve future runs.
 
@@ -46,7 +46,7 @@ The user has asked for a **retrospective**. You are suggesting improvements to t
 - **No-ops**: look for instructions in steering files that don't modify the agent's behavior. _Use when_ the steering files are large and unwieldy.
 - **Information access**: look for opportunities to increase the agent's access to information. Teeing dev server logs, readonly access to third-party services. _Use when_ a crucial piece of information was not available to the agent.
 
-4. Present these candidates to the user, in order of severity, each with the file it lands in and the exact change. Apply nothing until the user approves. An approved change lands the way any task does under the global standards' git workflow: in a repository, on its own feature branch in its own worktree, left uncommitted with a suggested commit message; in the spec tree, under that repository's own exception.
+4. Present these candidates to the user, in order of severity, each with the file it lands in and the exact change. Apply nothing until the user approves. An approved change lands the way any task does under the global standards' git workflow: in a repository, on its own feature branch in its own worktree, left uncommitted with a suggested commit message; in the spec tree, in a spec worktree, under that repository's own exception.
 
 ## Reference
 
