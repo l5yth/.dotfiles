@@ -9,8 +9,8 @@ Specs for this repository live in the spec tree at `~/.src/l5yth/spec/$org/$repo
 the project root (global standards, §Specifications and agent instructions). Every
 `CLAUDE.md`, `SPEC.md` and `ACCEPTANCE.md` named below means the copy there. Block A reads
 them there and writes none of them; block B reads and writes them there, and creates the
-entry if this repository has none. Fall back to the project's own files only if it keeps
-them at its root instead.
+entry if this repository has none, all in this task's spec worktree (`python3 ~/.claude/hooks/worktree.py spec` prints its path).
+Fall back to the project's own files only if it keeps them at its root instead.
 
 Every stop below that waits for me (a question, a confirmation, an approval, a sign-off, a choice) reaches me through the question dialog (`AskUserQuestion`), one decision per question.
 
@@ -87,7 +87,7 @@ If the review then finds failures, fix them and print an amended message.
 
 Have a fresh instance review against the amended spec-tree `ACCEPTANCE.md`. A failure is a criterion the change breaks or a claim it makes that is false; a finding beyond what the change claims is a low finding. Report failures verbatim, fix, and re-run. Each round's verdict comes to me before the next round starts. After two failing rounds, stop and give me the failures with three options: narrow the claim, ship as is, or continue. A clean round, or my choice, closes the bug. Use a subagent, or this read-only command (a fresh instance does not see the spec-tree note above, so the path is explicit):
 
-    claude -p "Review this repository strictly against ~/.src/l5yth/spec/$org/$repo/ACCEPTANCE.md, including the new regression line AND all prior criteria. Confirm the bug is fixed and nothing else regressed. List every failure." \
+    claude -p "Review this repository strictly against ~/.src/.spec/$org/$repo/$branch/$org/$repo/ACCEPTANCE.md, including the new regression line AND all prior criteria. Confirm the bug is fixed and nothing else regressed. List every failure." \
       --permission-mode default \
       --allowedTools "Read" "Grep" "Glob" "Bash(git ls-files:*)" "Bash(git branch:*)" "Bash(grep:*)" "Bash(wc:*)" "Bash(ls:*)" "Bash(test:*)" "Bash(npm run:*)" "Bash(npm test:*)" "Bash(node --test:*)" \
       --disallowedTools "Edit" "Write" "NotebookEdit"
