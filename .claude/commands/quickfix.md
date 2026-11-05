@@ -18,7 +18,7 @@ The goal is a small fix, such as a nit or a typo, shipped fast without the full 
 
 ## Phase 0: No spec writes
 
-Do not write any `CLAUDE.md`, `SPEC.md` or `ACCEPTANCE.md`, and nothing else in the spec tree; the `pull --ff-only` before reading still runs. This is the one exception to the global rule to amend the entry as work proceeds: a quickfix gets no amendment, now or later, and the commit message and the PR carry the record.
+Do not write any `CLAUDE.md`, `SPEC.md` or `ACCEPTANCE.md`, and nothing else in the spec tree; the `pull --ff-only` before reading still runs. This command makes one exception to the global rule to amend the entry as work proceeds: a quickfix gets no amendment, now or later, and the commit message and the PR carry the record.
 
 Read `CLAUDE.md` and the guardrails in full, and only the `SPEC.md` and `ACCEPTANCE.md` sections that cover the code the fix touches.
 
