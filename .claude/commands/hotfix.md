@@ -38,7 +38,7 @@ Done when the Phase 1 test passes and the existing tests still pass.
 
 ## Phase 3: Ship without review
 
-Print the suggested commit message now, with the worktree path next to it (the clone's path when there is no worktree). Do not commit and do not push: I commit, push and open the PR. No review runs in block A.
+Print the suggested commit message now, with the worktree path next to it (the clone's path when there is no worktree). End the turn with the reply that prints the message: the worktree path, then the whole message in a fenced code block. A message kept in your reasoning or in a file is not printed, and a line such as "commit message drafted" never stands in for it. Do not commit and do not push: I commit, push and open the PR. No review runs in block A.
 
 ## Block B: Full workflow after the fix
 
@@ -79,9 +79,9 @@ Two conditions, both required:
 
 ## Phase 8: Commit message
 
-If block B changed the repository, print the suggested commit message now, before the review, with the worktree path next to it (the clone's path when there is no worktree). Do not commit and do not push. The message covers block B's changes, so they can go up on the PR and Phase 9 can run against them in parallel. If block B changed only the spec tree, say so and print no message.
+If block B changed the repository, print the suggested commit message now, before the review, with the worktree path next to it (the clone's path when there is no worktree). Do not commit and do not push. The message covers block B's changes, so they can go up on the PR and Phase 9 can run against them in parallel. Start Phase 9 in the background, then end the turn with the reply that prints the message: the worktree path, then the whole message in a fenced code block. A message kept in your reasoning or in a file is not printed, and a line such as "commit message drafted" never stands in for it. If block B changed only the spec tree, say so and print no message.
 
-If the review then finds failures, fix them and print an amended message.
+If the review then finds failures, fix them and print an amended message the same way.
 
 ## Phase 9: Independent review
 
