@@ -53,9 +53,9 @@ Break the feature into small agile buckets. One at a time:
 
 ## Phase 5: Commit message
 
-Print the suggested commit message now, before the review, with the worktree path next to it (the clone's path when there is no worktree). Do not commit and do not push. The message covers the whole unit of work, so the PR can go up and Phase 6 can run against it in parallel.
+Print the suggested commit message now, before the review, with the worktree path next to it (the clone's path when there is no worktree). Do not commit and do not push. The message covers the whole unit of work, so the PR can go up and Phase 6 can run against it in parallel. Start Phase 6 in the background, then end the turn with the reply that prints the message: the worktree path, then the whole message in a fenced code block. A message kept in your reasoning or in a file is not printed, and a line such as "commit message drafted" never stands in for it.
 
-If the review then finds failures, fix them and print an amended message.
+If the review then finds failures, fix them and print an amended message the same way.
 
 ## Phase 6: Independent review
 

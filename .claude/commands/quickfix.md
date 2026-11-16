@@ -40,4 +40,4 @@ Done when the Phase 1 test passes, the existing tests still pass, and the accept
 
 ## Phase 3: Ship without review
 
-Print the suggested commit message now, with the worktree path next to it (the clone's path when there is no worktree). The message is the only record: it names the issue, the fix, and the Phase 1 test or its check command. Do not commit and do not push: I commit, push and open the PR. No review runs; this closes the quickfix.
+Print the suggested commit message now, with the worktree path next to it (the clone's path when there is no worktree). The message is the only record: it names the issue, the fix, and the Phase 1 test or its check command. End the turn with the reply that prints the message: the worktree path, then the whole message in a fenced code block. A message kept in your reasoning or in a file is not printed, and a line such as "commit message drafted" never stands in for it. Do not commit and do not push: I commit, push and open the PR. No review runs; this closes the quickfix.
