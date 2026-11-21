@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: 2026 Afri Blank (@l5yth)
+# SPDX-FileCopyrightText: 2026 Afri Blanck (@l5yth)
 # SPDX-License-Identifier: Unlicense
 #
 # This is free and unencumbered software released into the public domain.

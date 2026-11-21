@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2026 Afri Blank (@l5yth)
+# SPDX-FileCopyrightText: 2026 Afri Blanck (@l5yth)
 # SPDX-License-Identifier: Unlicense
 #
 # This is free and unencumbered software released into the public domain.
@@ -985,6 +985,19 @@ class MainTest(Case):
                     with self.assertRaises(SystemExit) as caught:
                         runpy.run_path(SCRIPT, run_name="__main__")
         self.assertEqual(caught.exception.code, 1)
+
+
+class HeaderTest(unittest.TestCase):
+    """The SPDX copyright line names the holder as spelled."""
+
+    def test_copyright_holder(self):
+        """Both files name Afri Blanck in their first three lines."""
+        line = "# SPDX-FileCopyrightText: 2026 Afri Blanck (@l5yth)"
+        for path in (SCRIPT, os.path.abspath(__file__)):
+            with self.subTest(path=os.path.basename(path)):
+                with open(path, encoding="utf-8") as f:
+                    head = f.read().splitlines()[:3]
+                self.assertIn(line, head)
 
 
 if __name__ == "__main__":
